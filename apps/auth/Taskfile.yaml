@@ -1,0 +1,22 @@
+version: "3"
+
+tasks:
+  migrateup:
+    cmds:
+      - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose up
+
+  migrateup1:
+    cmds:
+      - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose up 1
+
+  migratedown:
+    cmds:
+      - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose down
+
+  migratedown1:
+    cmds:
+      - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose down 1
+
+  new_migration:
+    cmds:
+      - migrate create -ext sql -dir internal/db/migration -seq $(name)
