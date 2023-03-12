@@ -4,4 +4,5 @@ use (
 	./apps/auth
 	./libs/utils
 	./libs/config
+	./libs/grpc
 )

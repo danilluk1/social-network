@@ -52,6 +52,6 @@ func main() {
 			log.Fatal("Error running protoc:", string(output))
 		}
 
-		fmt.Println("✅ Generated", file, "proto definitions", string(output))
+		log.Println("✅ Generated", file, "proto definitions", string(output))
 	}
 }

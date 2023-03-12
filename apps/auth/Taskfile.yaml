@@ -20,6 +20,9 @@ tasks:
   new_migration:
     cmds:
       - migrate create -ext sql -dir internal/db/migration -seq {{.NAME}}
+  sqlc:
+    cmds:
+      - sqlc generate --experimental
   dev:
     cmds:
       - air

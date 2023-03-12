@@ -4,9 +4,23 @@ includes:
   auth:
     taskfile: ./apps/auth/Taskfile.yaml
     dir: ./apps/auth
+  grpc:
+    taskfile: ./libs/grpc/Taskfile.yaml
+    dir: ./libs/grpc
 
 tasks:
+  run-grpc:
+    cmds:
+      - task: grpc:run
+  build-libs:
+    deps: [run-grpc]
+  prepare:
+    run: once
+    cmds:
+      - task: build-libs
+
   auth-dev:
+    deps: [prepare]
     cmds:
       - task: auth:dev
   dev:
