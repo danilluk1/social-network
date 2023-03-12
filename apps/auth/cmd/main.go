@@ -2,12 +2,20 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"net"
 	"os"
 
+	db "github.com/danilluk1/social-network/apps/auth/internal/db/sqlc"
+	"github.com/danilluk1/social-network/apps/auth/internal/grpc_impl"
 	"github.com/danilluk1/social-network/libs/config"
+	"github.com/danilluk1/social-network/libs/grpc/generated/auth"
+	"github.com/danilluk1/social-network/libs/grpc/servers"
 	"github.com/jackc/pgx/v5"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -26,5 +34,32 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
-	log.Info().Msg("Auth service running successfully🚀.")
+	store := db.NewStore(conn)
+
+	//TODO: change for cfg
+	runGrpcServer(cfg, store)
+}
+
+func runGrpcServer(config *config.Config, store db.Store) {
+	server, err := grpc_impl.NewServer(config, store)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot create server")
+	}
+
+	grpcLogger := grpc.UnaryInterceptor(grpc_impl.GrpcLogger)
+	grpcServer := grpc.NewServer(grpcLogger)
+	auth.RegisterAuthServer(grpcServer, server)
+	reflection.Register(grpcServer)
+
+	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", servers.AUTH_SERVER_PORT))
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot create listener")
+	}
+
+	log.Info().Msgf("🚀 start gRPC server at %s", listener.Addr().String())
+	err = grpcServer.Serve(listener)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot start gRPC server:")
+	}
+
 }
