@@ -1,5 +1,13 @@
-version "3"
+version: "3"
+
+includes:
+  auth:
+    taskfile: ./apps/auth/Taskfile.yaml
+    dir: ./apps/auth
 
 tasks:
-  migrations:
-    
+  auth-dev:
+    cmds:
+      - task: auth:dev
+  dev:
+    deps: [auth-dev]
