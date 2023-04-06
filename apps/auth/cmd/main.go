@@ -16,6 +16,10 @@ import (
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func main() {
@@ -34,10 +38,24 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
+	runDBMigation(cfg.AuthPostgresUrl, config.DBSource)
+
 	store := db.NewStore(conn)
 
-	//TODO: change for cfg
 	runGrpcServer(cfg, store)
+}
+
+func runDBMigation(migrationURL string, dbSource string) {
+	migration, err := migrate.New(migrationURL, dbSource)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot create new migration instance:")
+	}
+
+	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatal().Err(err).Msg("failed to run migrate up:")
+	}
+
+	log.Info().Msg("db migrate successfully")
 }
 
 func runGrpcServer(config *config.Config, store db.Store) {

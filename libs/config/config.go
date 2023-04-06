@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	MigrationUrl    string `required:"true" default:"file://apps/auth/internal/db/migration"`
 	AuthPostgresUrl string `required:"true" default:"postgres://test:test@localhost:5432/sn_auth" envconfig:"AUTH_POSTGRES_URL"`
 	AppEnv          string `required:"true" default:"development" envconfig:"APP_ENV"`
 	JwtSecret       string `required:"true" default:"CoolSecretForJWT" envconfig:"JWT_SECRET"`
