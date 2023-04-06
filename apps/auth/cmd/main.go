@@ -38,7 +38,7 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
-	runDBMigation(cfg.AuthPostgresUrl, config.DBSource)
+	runDBMigation(cfg.AuthPostgresUrl, "postgres")
 
 	store := db.NewStore(conn)
 
