@@ -1,0 +1,16 @@
+version '3'
+
+tasks:
+  generate:
+    cmds:
+      - go generate ./...
+  gen:
+    cmds:
+      - generate  
+  migrate-create:
+    cmds:
+      - generate
+      - atlas migrate diff $(filter-out $@,$(MAKECMDGOALS)) \
+		--dir "file://migrations" \
+		--to "ent://schema" \
+		--dev-url "docker://postgres/15/test?search_path=public"
