@@ -25,4 +25,4 @@ tasks:
       - sqlc generate --experimental
   dev:
     cmds:
-      - air
+      - reflex -s -r '\.go' -- go run ./cmd/main.go
