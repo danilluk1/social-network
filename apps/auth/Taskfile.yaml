@@ -1,28 +1,23 @@
 version: "3"
 
 tasks:
+  migrateup_dev:
+    cmds:
+      - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose up
+
+  migratedown_dev:
+    cmds:
+      - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose down
+
   migrateup:
     cmds:
       - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose up
 
-  migrateup1:
-    cmds:
-      - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose up 1
-
-  migratedown:
-    cmds:
-      - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose down
-
-  migratedown1:
-    cmds:
-      - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose down 1
-
-  new_migration:
-    cmds:
-      - migrate create -ext sql -dir internal/db/migration -seq {{.NAME}}
   sqlc:
     cmds:
       - sqlc generate --experimental
+
   dev:
+    deps: [migrateup_dev]
     cmds:
       - reflex -s -r '\.go' -- go run ./cmd/main.go

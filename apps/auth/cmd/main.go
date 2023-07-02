@@ -14,15 +14,13 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"go.uber.org/fx"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
-
-	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func main() {
+	ctx := context.Background()
+
 	cfg, err := config.New()
 	if err != nil {
 		log.Fatal().Err(err)
@@ -36,48 +34,39 @@ func main() {
 	if err != nil {
 		log.Error().Err(err).Msg("Unable to connect to database:")
 	}
-	defer conn.Close(context.Background())
-
-	runDBMigation(cfg.AuthPostgresUrl, "postgres")
 
 	store := db.NewStore(conn)
 
-	runGrpcServer(cfg, store)
-}
-
-func runDBMigation(migrationURL string, dbSource string) {
-	migration, err := migrate.New(migrationURL, dbSource)
+	grpcServerImpl, err := grpc_impl.NewServer(cfg, store)
 	if err != nil {
-		log.Fatal().Err(err).Msg("cannot create new migration instance:")
+		log.Error().Err(err).Msg("Unable to create auth grpc server:")
 	}
 
-	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal().Err(err).Msg("failed to run migrate up:")
-	}
-
-	log.Info().Msg("db migrate successfully")
-}
-
-func runGrpcServer(config *config.Config, store db.Store) {
-	server, err := grpc_impl.NewServer(config, store)
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", servers.AUTH_SERVER_PORT))
 	if err != nil {
-		log.Fatal().Err(err).Msg("cannot create server")
+		log.Error().Err(err).Msg("Failed to listen:")
 	}
 
-	grpcLogger := grpc.UnaryInterceptor(grpc_impl.GrpcLogger)
-	grpcServer := grpc.NewServer(grpcLogger)
-	auth.RegisterAuthServer(grpcServer, server)
-	reflection.Register(grpcServer)
+	grpcServer := grpc.NewServer()
+	auth.RegisterAuthServer(grpcServer, grpcServerImpl)
+	go grpcServer.Serve(lis)
+	defer grpcServer.GracefulStop()
 
-	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", servers.AUTH_SERVER_PORT))
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot create listener")
-	}
+	//Write support of logrus instead of zap inside fx
+	app := fx.New(
+		fx.Provide(
+			func(lc fx.Lifecycle) *pgx.Conn {
+				lc.Append(fx.Hook{
+					OnStop: func(context.Context) error {
+						return conn.Close(ctx)
+					},
+				})
+				return conn
+			},
+			func() *config.Config { return cfg },
+		),
+	)
 
-	log.Info().Msgf("🚀 start gRPC server at %s", listener.Addr().String())
-	err = grpcServer.Serve(listener)
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot start gRPC server:")
-	}
-
+	log.Info().Msg("Auth microservice started")
+	app.Run()
 }
