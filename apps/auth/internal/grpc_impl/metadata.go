@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	grpcGatewayUserAgentHeader = "grpcgateway-user-agent"
-	userAgentHeader            = "user-agent"
-	xForwardedForHeader        = "x-forwarded-for"
+	gatewayUserAgentHeader = "gateway-user-agent"
+	userAgentHeader        = "user-agent"
+	xForwardedForHeader    = "x-forwarded-for"
 )
 
 type Metadata struct {
@@ -22,7 +22,7 @@ func (server *Server) extractMetadata(ctx context.Context) *Metadata {
 	mtdt := &Metadata{}
 
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if usersAgent := md.Get(grpcGatewayUserAgentHeader); len(usersAgent) > 0 {
+		if usersAgent := md.Get(gatewayUserAgentHeader); len(usersAgent) > 0 {
 			mtdt.UserAgent = usersAgent[0]
 		}
 

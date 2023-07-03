@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
 
 	db "github.com/danilluk1/social-network/apps/auth/internal/db/sqlc"
 	"github.com/danilluk1/social-network/apps/auth/internal/grpc_impl"
@@ -12,39 +14,46 @@ import (
 	"github.com/danilluk1/social-network/libs/grpc/generated/auth"
 	"github.com/danilluk1/social-network/libs/grpc/servers"
 	"github.com/jackc/pgx/v5"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"go.uber.org/fx"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	cfg, err := config.New()
 	if err != nil {
-		log.Fatal().Err(err)
+		panic(err)
 	}
+
+	var logger *zap.Logger
 
 	if cfg.AppEnv == "development" {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		l, _ := zap.NewDevelopment()
+		logger = l
+	} else {
+		l, _ := zap.NewProduction()
+		logger = l
 	}
 
-	conn, err := pgx.Connect(context.Background(), cfg.AuthPostgresUrl)
+	zap.ReplaceGlobals(logger)
+
+	conn, err := pgx.Connect(ctx, cfg.AuthPostgresUrl)
 	if err != nil {
-		log.Error().Err(err).Msg("Unable to connect to database:")
+		logger.Sugar().Error(err)
 	}
+	defer conn.Close(ctx)
 
 	store := db.NewStore(conn)
 
-	grpcServerImpl, err := grpc_impl.NewServer(cfg, store)
+	grpcServerImpl, err := grpc_impl.NewServer(cfg, store, logger)
 	if err != nil {
-		log.Error().Err(err).Msg("Unable to create auth grpc server:")
+		logger.Sugar().Error("Failed to create auth grpc server:", err)
 	}
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", servers.AUTH_SERVER_PORT))
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to listen:")
+		logger.Sugar().Error("Failed to listen:", err)
 	}
 
 	grpcServer := grpc.NewServer()
@@ -52,21 +61,12 @@ func main() {
 	go grpcServer.Serve(lis)
 	defer grpcServer.GracefulStop()
 
-	//Write support of logrus instead of zap inside fx
-	app := fx.New(
-		fx.Provide(
-			func(lc fx.Lifecycle) *pgx.Conn {
-				lc.Append(fx.Hook{
-					OnStop: func(context.Context) error {
-						return conn.Close(ctx)
-					},
-				})
-				return conn
-			},
-			func() *config.Config { return cfg },
-		),
-	)
+	logger.Sugar().Info("Auth microservice started")
 
-	log.Info().Msg("Auth microservice started")
-	app.Run()
+	exitSignal := make(chan os.Signal, 1)
+	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
+
+	<-exitSignal
+	logger.Sugar().Info("Exiting...")
+	cancel()
 }
