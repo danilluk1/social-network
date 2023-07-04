@@ -7,18 +7,27 @@ includes:
   grpc:
     taskfile: ./libs/grpc/Taskfile.yaml
     dir: ./libs/grpc
+  migrations-runner:
+    taskfile: ./tools/migrations-runner/Taskfile.yaml
+    dir: ./tools/migrations-runner
 
 tasks:
+  migrations-up-prod:
+    cmds:
+      - task: migrations-runner:run
+  migrations-up-dev:
+    cmds:
+      - task: migrations-runner:dev
   run-grpc:
     cmds:
       - task: grpc:run
   build-libs:
     deps: [run-grpc]
   prepare:
+    deps: [migrations-up-dev]
     run: once
     cmds:
       - task: build-libs
-
   auth-dev:
     deps: [prepare]
     cmds:

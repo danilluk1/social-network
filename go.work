@@ -1,9 +1,10 @@
 go 1.20
 
 use (
-	./apps/gateway
+	// ./apps/gateway
 	./apps/auth
 	./libs/utils
 	./libs/config
 	./libs/grpc
+	./tools/migrations-runner
 )
