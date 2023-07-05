@@ -61,7 +61,7 @@ func main() {
 	go grpcServer.Serve(lis)
 	defer grpcServer.GracefulStop()
 
-	logger.Sugar().Info("Auth microservice started")
+	logger.Sugar().Info("Auth microservice started.")
 
 	exitSignal := make(chan os.Signal, 1)
 	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
