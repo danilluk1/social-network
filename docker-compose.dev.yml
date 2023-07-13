@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   adminer:
+    container_name: adminer
     image: adminer
     restart: unless-stopped
     ports:
@@ -11,6 +12,7 @@ services:
       - ADMINER_PLUGINS=enum-types enum-option json-column
   
   postgres:
+    container_name: postgres
     restart: unless-stopped
     image: postgres:15
     volumes:
@@ -28,6 +30,7 @@ services:
       retries: 5
   
   zookeeper:
+    container_name: zookeeper
     image: confluentinc/cp-zookeeper:latest
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -36,6 +39,7 @@ services:
       - 22181:2181
   
   kafka:
+    container_name: kafka
     image: confluentinc/cp-kafka:latest
     depends_on:
       - zookeeper
@@ -59,6 +63,7 @@ services:
       KAFKA_CLUSTERS_0_NAME: test
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
   schemaregistry:
+    container_name: schemaregistry
     image: confluentinc/cp-schema-registry:7.2.1
     ports:
       - 18085:8085
@@ -87,10 +92,12 @@ services:
   #              kafka-topics --create --topic first.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka0:29092 && \
   #              kafka-console-producer --bootstrap-server kafka1:29092 -topic second.users < /data/message.json'"
   loki:
+    container_name: loki
     image: grafana/loki:2.8.0
     ports:
       - "3100:3100"
   promtail:
+    container_name: promtail
     image: grafana/promtail:2.8.0
     volumes:
       - /data/log:/var/log
@@ -115,7 +122,65 @@ services:
       - default-net
     labels:
       org.label-schema.group: "monitoring"
+  alertmanager:
+    image: prom/alertmanager:v0.24.0
+    container_name: alertmanager
+    volumes:
+      - ./data/alertmanager:/etc/alertmanager
+    command: 
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+    restart: unless-stopped
+    expose:
+      - 9093
+    networks:
+      - monitor-net
+      - default-net
+    labels:
+      org.label-schema.group: "monitoring"
   grafana:
+    container_name: grafana
+    image: grafana/grafana:9.2.4
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./data/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./data/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    expose:
+      - 3000
+    networks:
+      - monitor-net
+      - default-net
+    labels:
+      org.label-schema.group: "monitoring"
+
+  pushgateway:
+    container_name: pushgateway
+    image: prom/pushgateway:v1.4.3
+    restart: unless-stopped
+    expose:
+      - 9091
+    networks:
+      - monitor-net
+      - default-net
+    labels:
+      org.label-schema.group: "monitoring"
+  
+  mailpit:
+    image: 'axllent/mailpit:latest'
+    container_name: mailpit
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025' 
+    networks:
+      - default-net
 
 volumes:
   postgres-data:

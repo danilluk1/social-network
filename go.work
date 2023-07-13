@@ -3,6 +3,7 @@ go 1.20
 use (
 	// ./apps/gateway
 	./apps/auth
+	./apps/mailer
 	./libs/utils
 	./libs/config
 	./libs/grpc
