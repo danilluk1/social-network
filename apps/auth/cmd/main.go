@@ -3,20 +3,36 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/danilluk1/social-network/libs/avro"
 
 	db "github.com/danilluk1/social-network/apps/auth/internal/db/sqlc"
 	"github.com/danilluk1/social-network/apps/auth/internal/grpc_impl"
 	"github.com/danilluk1/social-network/libs/config"
 	"github.com/danilluk1/social-network/libs/grpc/generated/auth"
 	"github.com/danilluk1/social-network/libs/grpc/servers"
+	"github.com/danilluk1/social-network/libs/kafka/topics"
 	"github.com/jackc/pgx/v5"
+	"github.com/riferrei/srclient"
+	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
+
+type EmailMessage struct {
+	From        string   `json:"from"`
+	To          []string `json:"to"`
+	Cc          []string `json:"cc"`
+	Subject     string   `json:"subject"`
+	Body        string   `json:"body"`
+	Attachments []string `json:"attachments"`
+}
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -46,7 +62,47 @@ func main() {
 
 	store := db.NewStore(conn)
 
-	grpcServerImpl, err := grpc_impl.NewServer(cfg, store, logger)
+	writer := &kafka.Writer{
+		Addr:                   kafka.TCP(cfg.KafkaUrl),
+		Topic:                  topics.Mail,
+		AllowAutoTopicCreation: true,
+	}
+	defer writer.Close()
+	schemaClient := srclient.CreateSchemaRegistryClient(cfg.SchemaRegistryUrl)
+	schema, err := schemaClient.GetLatestSchema(topics.Mail)
+	if schema == nil || err == nil {
+		schemaBytes, _ := ioutil.ReadFile(cfg.SchemasPath + topics.Mail + ".avsc")
+		_, err = schemaClient.CreateSchema(topics.Mail, string(schemaBytes), srclient.Avro)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	email := EmailMessage{
+		From:        "alex@example.com",
+		To:          []string{"bob@example.com", "cora@example.com"},
+		Cc:          []string{"dan@example.com"},
+		Subject:     "Hello!",
+		Body:        "Hello <b>Bob</b> and <i>Cora</i>!",
+		Attachments: []string{"/home/Alex/lolcat.jpg"},
+	}
+
+	//TODO: move to right place
+	msg, err := avro.Encode(&email, schema.Codec(), schema.ID())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = writer.WriteMessages(context.Background(),
+		kafka.Message{
+			Value: msg,
+		},
+	)
+	if err != nil {
+		log.Fatal("failed to write messages:", err)
+	}
+
+	grpcServerImpl, err := grpc_impl.NewServer(cfg, store, logger, writer, schemaClient)
 	if err != nil {
 		logger.Sugar().Error("Failed to create auth grpc server:", err)
 	}

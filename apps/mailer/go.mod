@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/danilluk1/social-network/libs/config v0.0.0-20230713064615-06faf1d6dd42
+	github.com/danilluk1/social-network/libs/kafka v0.0.0-20230713111753-0f1a9aff1763
 	github.com/prometheus/client_golang v1.16.0
 	github.com/segmentio/kafka-go v0.4.42
 	go.uber.org/zap v1.24.0
@@ -24,7 +25,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
-	github.com/riferrei/srclient v0.6.0 // indirect
+	github.com/riferrei/srclient v0.6.0
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
@@ -33,5 +34,3 @@ require (
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )
-
-replace github.com/danilluk1/social-network/libs/kafka => ../../../../libs/kafka

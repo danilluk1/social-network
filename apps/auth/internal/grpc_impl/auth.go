@@ -111,11 +111,16 @@ func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserReques
 		return nil, status.Error(codes.Internal, "failed to hash password")
 	}
 
-	arg := db.CreateUserParams{
-		Username:       req.GetUsername(),
-		HashedPassword: hashedPassword,
-		Email:          req.GetEmail(),
-		FullName:       req.GetFullName(),
+	arg := db.CreateUserTxParams{
+		CreateUserParams: db.CreateUserParams{
+			Username:       req.GetUsername(),
+			HashedPassword: hashedPassword,
+			Email:          req.GetEmail(),
+			FullName:       req.GetFullName(),
+		},
+		AfterCreate: func(user db.User) error {
+
+		},
 	}
 
 	user, err := server.store.CreateUser(ctx, arg)

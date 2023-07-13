@@ -8,5 +8,6 @@ use (
 	./libs/config
 	./libs/kafka
 	./libs/grpc
+	./libs/avro
 	./tools/migrations-runner
 )

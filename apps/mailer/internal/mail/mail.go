@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 
 	"github.com/danilluk1/social-network/apps/mailer/internal/types"
+	"github.com/danilluk1/social-network/libs/avro"
 )
 
 type Reader struct {
@@ -17,6 +18,15 @@ func New(services *types.Services) *Reader {
 	}
 }
 
+type EmailMessage struct {
+	From        string   `json:"from"`
+	To          []string `json:"to"`
+	Cc          []string `json:"cc"`
+	Subject     string   `json:"subject"`
+	Body        string   `json:"body"`
+	Attachments []string `json:"attachments"`
+}
+
 func (r *Reader) Start(ctx context.Context) {
 	for {
 		msg, err := r.services.Reader.ReadMessage(ctx)
@@ -26,19 +36,19 @@ func (r *Reader) Start(ctx context.Context) {
 		}
 
 		if len(msg.Value) <= 5 {
-			return
+			continue
 		}
 
 		schemaID := binary.BigEndian.Uint32(msg.Value[1:5])
 		schema, err := r.services.SchemaRegistry.GetSchema(int(schemaID))
 		if err != nil {
 			r.services.Logger.Sugar().Error(err)
-			return
+			continue
 		}
 
-		native, _, _ := schema.Codec().NativeFromBinary(msg.Value[5:])
-		value, _ := schema.Codec().TextualFromNative(nil, native)
-		r.services.Logger.Sugar().Info(value)
+		email := &EmailMessage{}
+		avro.Decode(msg.Value, schema.Codec(), email)
+		r.services.Logger.Sugar().Info(email.Body)
 	}
 
 }
