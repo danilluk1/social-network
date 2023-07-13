@@ -7,16 +7,19 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/danilluk1/social-network/apps/mailer/internal/mail"
 	"github.com/danilluk1/social-network/apps/mailer/internal/types"
 	"github.com/danilluk1/social-network/libs/config"
+	topics "github.com/danilluk1/social-network/libs/kafka/topics"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/riferrei/srclient"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
 )
 
 func main() {
-	_, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 
 	cfg, err := config.New()
 	if err != nil {
@@ -44,10 +47,14 @@ func main() {
 		Logger: logger,
 		Mail:   gomail.NewDialer(cfg.MailHost, cfg.MailPort, cfg.MailUser, cfg.MailPass),
 		Reader: kafka.NewReader(kafka.ReaderConfig{
-			Brokers: []string{kafka.GWUrl},
-			Topic: cfg.
+			Brokers: []string{cfg.KafkaUrl},
+			Topic:   topics.Mail,
 		}),
+		SchemaRegistry: srclient.CreateSchemaRegistryClient(cfg.SchemaRegistryUrl),
 	}
+
+	reader := mail.New(services)
+	go reader.Start(ctx)
 
 	logger.Sugar().Info("Mailer microservice started")
 

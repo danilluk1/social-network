@@ -1,6 +1,9 @@
 version: "3"
 
 includes:
+  mailer:
+    taskfile: ./apps/mailer/Taskfile.yaml
+    dir: ./apps/mailer
   auth:
     taskfile: ./apps/auth/Taskfile.yaml
     dir: ./apps/auth
@@ -28,9 +31,13 @@ tasks:
     run: once
     cmds:
       - task: build-libs
+  mailer-dev:
+    deps: []
+    cmds:
+      - task: mailer:dev
   auth-dev:
     deps: [prepare]
     cmds:
       - task: auth:dev
   dev:
-    deps: [auth-dev]
+    deps: [auth-dev, mailer-dev]

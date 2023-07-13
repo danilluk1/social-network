@@ -1,0 +1,39 @@
+{
+  "type": "record",
+  "name": "EmailMessage",
+  "fields": [
+    {
+      "name": "from",
+      "type": "string"
+    },
+    {
+      "name": "to",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    {
+      "name": "cc",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    {
+      "name": "subject",
+      "type": "string"
+    },
+    {
+      "name": "body",
+      "type": "string"
+    },
+    {
+      "name": "attachments",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    }
+  ]
+}

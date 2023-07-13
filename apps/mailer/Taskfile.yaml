@@ -1,6 +1,9 @@
 version: "3"
 
 tasks:
+  migrateup_dev:
+    cmds:
+      - echo No migration for mailer service
   dev:
     deps: [migrateup_dev]
     cmds:

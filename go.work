@@ -6,6 +6,7 @@ use (
 	./apps/mailer
 	./libs/utils
 	./libs/config
+	./libs/kafka
 	./libs/grpc
 	./tools/migrations-runner
 )
