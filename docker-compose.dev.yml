@@ -26,5 +26,104 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+  
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8080:8080
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: test
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+  schemaregistry:
+    image: confluentinc/cp-schema-registry:7.2.1
+    ports:
+      - 18085:8085
+    depends_on:
+      - kafka
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
+      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: PLAINTEXT
+      SCHEMA_REGISTRY_HOST_NAME: schemaregistry
+      SCHEMA_REGISTRY_LISTENERS: http://schemaregistry:8085
+
+      SCHEMA_REGISTRY_SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL: "http"
+      SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: INFO
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: _schemas
+
+  # kafka-init-topics:
+  #   image: confluentinc/cp-kafka:7.2.1
+  #   volumes:
+  #      - ./data/message.json:/data/message.json
+  #   depends_on:
+  #     - kafka
+  #   command: "bash -c 'echo Waiting for Kafka to be ready... && \
+  #              cub kafka-ready -b kafka:29092 1 30 && \
+  #              kafka-topics --create --topic second.users --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server kafka1:29092 && \
+  #              kafka-topics --create --topic second.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka1:29092 && \
+  #              kafka-topics --create --topic first.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka0:29092 && \
+  #              kafka-console-producer --bootstrap-server kafka1:29092 -topic second.users < /data/message.json'"
+  loki:
+    image: grafana/loki:2.8.0
+    ports:
+      - "3100:3100"
+  promtail:
+    image: grafana/promtail:2.8.0
+    volumes:
+      - /data/log:/var/log
+  prometheus:
+    image: prom/prometheus:v2.40.1
+    container_name: prometheus
+    volumes:
+      - ./data/prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    expose:
+      - 9090
+    networks:
+      - monitor-net
+      - default-net
+    labels:
+      org.label-schema.group: "monitoring"
+  grafana:
+
 volumes:
   postgres-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  monitor-net:
+    driver: bridge
+  default-net:
+    driver: bridge
