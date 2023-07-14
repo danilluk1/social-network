@@ -3,6 +3,7 @@ module github.com/danilluk1/social-network/apps/mailer
 go 1.20
 
 require (
+	github.com/danilluk1/social-network/libs/avro v0.0.0-20230714054725-e2bef9cbf3c6
 	github.com/danilluk1/social-network/libs/config v0.0.0-20230713064615-06faf1d6dd42
 	github.com/danilluk1/social-network/libs/kafka v0.0.0-20230713111753-0f1a9aff1763
 	github.com/prometheus/client_golang v1.16.0

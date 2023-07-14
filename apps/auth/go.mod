@@ -4,9 +4,10 @@ go 1.20
 
 require (
 	github.com/aead/chacha20poly1305 v0.0.0-20201124145622-1a5aba2a8b29
+	github.com/danilluk1/social-network/libs/avro v0.0.0-20230714054725-e2bef9cbf3c6
 	github.com/danilluk1/social-network/libs/config v0.0.0-20230701094648-aca802cce650
 	github.com/danilluk1/social-network/libs/grpc v0.0.0-20230701094648-aca802cce650
-	github.com/danilluk1/social-network/libs/kafka v0.0.0-20230713111753-0f1a9aff1763
+	github.com/danilluk1/social-network/libs/kafka v0.0.0-20230714054725-e2bef9cbf3c6
 	github.com/danilluk1/social-network/libs/utils v0.0.0-20230701094648-aca802cce650
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v5 v5.4.1
@@ -26,6 +27,7 @@ require (
 	github.com/aead/poly1305 v0.0.0-20180717145839-3fee0db0b635 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-chi/chi/v5 v5.0.10 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -34,7 +36,6 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/linkedin/goavro v2.1.0+incompatible // indirect
 	github.com/linkedin/goavro/v2 v2.11.1 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect

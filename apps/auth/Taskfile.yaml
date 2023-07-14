@@ -3,19 +3,19 @@ version: "3"
 tasks:
   migrateup_dev:
     cmds:
-      - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose up
+      - goose -v -dir "internal/db/migration" postgres "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" up
 
   migratedown_dev:
     cmds:
-      - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose down
+      - goose -v -dir "internal/db/migration" postgres "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" down
 
   migrateup:
     cmds:
-      - migrate -path internal/db/migration -database "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" -verbose up
+      - goose -v -dir "internal/db/migration" postgres {{.DB_URL}} up
 
   new_migration:
     cmds:
-      - migrate create -ext sql -dir internal/db/migration -seq {{.NAME}}
+      - goose -v -dir "internal/db/migration" create {{.NAME}} sql
 
   sqlc:
     cmds:

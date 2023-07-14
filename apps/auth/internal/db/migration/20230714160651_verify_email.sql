@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE "verify_emails" (
   "id" bigserial PRIMARY KEY,
   "username" varchar NOT NULL,
@@ -11,3 +13,11 @@ CREATE TABLE "verify_emails" (
 ALTER TABLE "verify_emails" ADD FOREIGN KEY ("username") REFERENCES "users" ("username");
 
 ALTER TABLE "users" ADD COLUMN "is_email_verified" bool NOT NULL DEFAULT false;
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS "verify_emails" CASCADE;
+
+ALTER TABLE "users" DROP COLUMN "is_email_verified" bool NOT NULL DEFAULT false;
+-- +goose StatementEnd
