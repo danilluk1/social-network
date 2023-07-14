@@ -6,6 +6,7 @@ import (
 
 	"github.com/danilluk1/social-network/apps/mailer/internal/types"
 	"github.com/danilluk1/social-network/libs/avro"
+	"gopkg.in/gomail.v2"
 )
 
 type Reader struct {
@@ -33,8 +34,13 @@ func (r *Reader) Start(ctx context.Context) {
 		if err != nil {
 			//TODO: provide rich error handling
 			r.services.Logger.Sugar().Error(err)
+			continue
 		}
-
+		err = r.services.Reader.CommitMessages(ctx, msg)
+		if err != nil {
+			r.services.Logger.Sugar().Error(err)
+			continue
+		}
 		if len(msg.Value) <= 5 {
 			continue
 		}
@@ -48,7 +54,19 @@ func (r *Reader) Start(ctx context.Context) {
 
 		email := &EmailMessage{}
 		avro.Decode(msg.Value, schema.Codec(), email)
-		r.services.Logger.Sugar().Info(email.Body)
+		m := gomail.NewMessage()
+		m.SetHeader("From", email.From)
+		m.SetHeader("To", email.To...)
+		m.SetAddressHeader("Cc", "info@socialnetwork.ru", "Social Network")
+		m.SetHeader("Subject", "Activating new account")
+		m.SetBody("text/html", email.Body)
+		for _, a := range email.Attachments {
+			m.Attach(a)
+		}
+		err = r.services.Mail.DialAndSend(m)
+		if err != nil {
+			r.services.Logger.Sugar().Error(err)
+		}
 	}
 
 }

@@ -7,11 +7,15 @@ import (
 
 	db "github.com/danilluk1/social-network/apps/auth/internal/db/sqlc"
 	"github.com/danilluk1/social-network/apps/auth/internal/val"
+	"github.com/danilluk1/social-network/libs/avro"
 	"github.com/danilluk1/social-network/libs/grpc/generated/auth"
+	types "github.com/danilluk1/social-network/libs/kafka/schemas"
+	"github.com/danilluk1/social-network/libs/kafka/topics"
 	"github.com/danilluk1/social-network/libs/utils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/segmentio/kafka-go"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -119,11 +123,50 @@ func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserReques
 			FullName:       req.GetFullName(),
 		},
 		AfterCreate: func(user db.User) error {
+			verifyEmail, err := server.store.CreateVerifyEmail(ctx, db.CreateVerifyEmailParams{
+				Username:   user.Username,
+				Email:      user.Email,
+				SecretCode: utils.RandomString(32),
+			})
+			if err != nil {
+				return err
+			}
 
+			verifyUrl := fmt.Sprintf("http://localhost:9090/verify_email?id=%d&secret_code=%s", verifyEmail.ID, verifyEmail.SecretCode)
+			email := types.EmailMessage{
+				From:    "socialnetwork@mail.ru",
+				To:      []string{user.Email},
+				Cc:      []string{"dan@example.com"},
+				Subject: "Welcome to our Social Network!",
+				Body: fmt.Sprintf(`Hello %s,<br/>
+				Thank you for registering with us <br/>
+				Please <a href="%s">Click here</a> to verify your email address.<br/>
+				`, user.FullName, verifyUrl),
+				Attachments: []string{},
+			}
+
+			schema, err := server.schemaRegistry.GetLatestSchema(topics.Mail)
+			if err != nil {
+				return err
+			}
+
+			encodedMsg, err := avro.Encode(&email, schema.Codec(), schema.ID())
+			if err != nil {
+				return err
+			}
+
+			err = server.kafkaWriter.WriteMessages(ctx, kafka.Message{
+				Value: encodedMsg,
+			})
+			if err != nil {
+				return err
+			}
+
+			return nil
 		},
 	}
 
-	user, err := server.store.CreateUser(ctx, arg)
+	tx, err := server.store.CreateUserTx(ctx, arg)
 	if err != nil {
 		if pqErr, ok := err.(*pgconn.PgError); ok {
 			switch pqErr.Code {
@@ -136,7 +179,7 @@ func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserReques
 	}
 
 	rsp := &auth.CreateUserResponse{
-		User: convertUser(user),
+		User: convertUser(tx.User),
 	}
 	return rsp, nil
 }

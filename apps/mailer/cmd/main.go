@@ -49,6 +49,7 @@ func main() {
 		Reader: kafka.NewReader(kafka.ReaderConfig{
 			Brokers: []string{cfg.KafkaUrl},
 			Topic:   topics.Mail,
+			GroupID: "mailer",
 		}),
 		SchemaRegistry: srclient.CreateSchemaRegistryClient(cfg.SchemaRegistryUrl),
 	}

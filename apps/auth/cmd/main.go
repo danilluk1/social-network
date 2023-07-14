@@ -4,13 +4,10 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/danilluk1/social-network/libs/avro"
 
 	db "github.com/danilluk1/social-network/apps/auth/internal/db/sqlc"
 	"github.com/danilluk1/social-network/apps/auth/internal/grpc_impl"
@@ -76,30 +73,6 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-	}
-
-	email := EmailMessage{
-		From:        "alex@example.com",
-		To:          []string{"bob@example.com", "cora@example.com"},
-		Cc:          []string{"dan@example.com"},
-		Subject:     "Hello!",
-		Body:        "Hello <b>Bob</b> and <i>Cora</i>!",
-		Attachments: []string{"/home/Alex/lolcat.jpg"},
-	}
-
-	//TODO: move to right place
-	msg, err := avro.Encode(&email, schema.Codec(), schema.ID())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = writer.WriteMessages(context.Background(),
-		kafka.Message{
-			Value: msg,
-		},
-	)
-	if err != nil {
-		log.Fatal("failed to write messages:", err)
 	}
 
 	grpcServerImpl, err := grpc_impl.NewServer(cfg, store, logger, writer, schemaClient)
