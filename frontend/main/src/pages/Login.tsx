@@ -9,7 +9,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import Logo from "./../assets/logo.svg";
+import { ReactComponent as Logo } from "./../assets/logo.svg";
 import { IconArrowRight } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 
@@ -34,7 +34,7 @@ const Login = () => {
   return (
     <Flex h={"100vh"}>
       <Box w={"50%"} pt="xs" px="lg">
-        {/* <Logo /> */}
+        <Logo />
         <Group w={"100%"} position="center" mt="xl">
           <form onSubmit={form.onSubmit((values) => onLoginClick(values))}>
             <Title order={3} ta="center">
