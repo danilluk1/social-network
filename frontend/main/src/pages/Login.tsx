@@ -9,11 +9,16 @@ import {
   Title,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useTranslation } from "react-i18next";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
 import { ReactComponent as Logo } from "./../assets/logo.svg";
 import { IconArrowRight } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
+import ThemeSwitcher from "../components/commons/ThemeSwitcher";
 
 const Login = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const form = useForm({
@@ -23,22 +28,29 @@ const Login = () => {
     },
 
     validate: {
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
-      password: (value) =>
-        value.length > 6 ? null : "Password must be more than 6 symbols length",
+      email: (value) => (/^\S+@\S+$/.test(value) ? null : t("invalidEmail")),
+      password: (value) => (value.length > 6 ? null : t("invalidPassword")),
     },
   });
 
   const onLoginClick = (values: { email: string; password: string }) => {};
-
   return (
     <Flex h={"100vh"}>
-      <Box w={"50%"} pt="xs" px="lg">
+      <Box w={"50%"} pt="xs" px="lg" pos="relative">
         <Logo />
+        <ThemeSwitcher
+          style={{
+            width: "2.2em",
+            height: "2.2em",
+            position: "absolute",
+            bottom: "20px",
+            right: "20px",
+          }}
+        />
         <Group w={"100%"} position="center" mt="xl">
           <form onSubmit={form.onSubmit((values) => onLoginClick(values))}>
             <Title order={3} ta="center">
-              Sign in
+              {t("signIn")}
             </Title>
             <TextInput
               mb={"sm"}
@@ -56,14 +68,14 @@ const Login = () => {
             />
             <Group mb={"lg"}>
               <Button type="submit" rightIcon={<IconArrowRight />}>
-                Login
+                {t("signIn")}
               </Button>
               <Text onClick={() => navigate("reset")}>
-                Forgot your password?
+                {t("forgotPassword")}
               </Text>
             </Group>
             <Button color="white" bg="black">
-              CREATE NEW ACCOUNT
+              {t("createNewAccount").toLocaleUpperCase()}
             </Button>
           </form>
         </Group>

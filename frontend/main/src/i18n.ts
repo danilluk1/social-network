@@ -1,7 +1,20 @@
 import i18n from "i18next";
-import { useTranslation, initReactI18next } from "react-i18next";
+import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
 
-i18n.use(initReactI18next).init({
-  resources: {},
-  lng: "en",
-});
+import enJSONLogin from "./assets/locales/en/login.json";
+import ruJSONLogin from "./assets/locales/ru/login.json";
+
+await i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    fallbackLng: "en",
+    interpolation: {
+      escapeValue: false,
+    },
+    resources: {
+      en: { ...enJSONLogin },
+      ru: { ...ruJSONLogin },
+    },
+  });

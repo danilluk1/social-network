@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  3x2:
+    specifier: link:country-flag-icons/react/3x2
+    version: link:country-flag-icons/react/3x2
   '@emotion/react':
     specifier: ^11.11.1
     version: 11.11.1(@types/react@18.2.14)(react@18.2.0)
@@ -50,6 +53,9 @@ dependencies:
   '@tiptap/starter-kit':
     specifier: ^2.0.3
     version: 2.0.3(@tiptap/pm@2.0.3)
+  country-flag-icons:
+    specifier: ^1.5.7
+    version: 1.5.7
   dayjs:
     specifier: ^1.11.9
     version: 1.11.9
@@ -59,6 +65,9 @@ dependencies:
   i18next:
     specifier: ^23.2.11
     version: 23.2.11
+  i18next-browser-languagedetector:
+    specifier: ^7.1.0
+    version: 7.1.0
   react:
     specifier: ^18.2.0
     version: 18.2.0
@@ -1945,6 +1954,10 @@ packages:
       path-type: 4.0.0
     dev: false
 
+  /country-flag-icons@1.5.7:
+    resolution: {integrity: sha512-AdvXhMcmSp7nBSkpGfW4qR/luAdRUutJqya9PuwRbsBzuoknThfultbv7Ib6fWsHXC43Es/4QJ8gzQQdBNm75A==}
+    dev: false
+
   /crelt@1.0.6:
     resolution: {integrity: sha512-VQ2MBenTq1fWZUH9DJNGti7kKv6EeAuYr3cLwxUWhIu1baTaXh4Ib5W2CqHVqib4/MqbYGJqiL3Zb8GJZr3l4g==}
     dev: false
@@ -2407,6 +2420,12 @@ packages:
     resolution: {integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==}
     dependencies:
       void-elements: 3.1.0
+    dev: false
+
+  /i18next-browser-languagedetector@7.1.0:
+    resolution: {integrity: sha512-cr2k7u1XJJ4HTOjM9GyOMtbOA47RtUoWRAtt52z43r3AoMs2StYKyjS3URPhzHaf+mn10hY9dZWamga5WPQjhA==}
+    dependencies:
+      '@babel/runtime': 7.22.6
     dev: false
 
   /i18next@23.2.11:

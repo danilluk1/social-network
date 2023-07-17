@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "3x2": "link:country-flag-icons/react/3x2",
     "@emotion/react": "^11.11.1",
     "@mantine/carousel": "^6.0.16",
     "@mantine/core": "^6.0.16",
@@ -25,9 +26,11 @@
     "@tiptap/extension-link": "^2.0.3",
     "@tiptap/react": "^2.0.3",
     "@tiptap/starter-kit": "^2.0.3",
+    "country-flag-icons": "^1.5.7",
     "dayjs": "^1.11.9",
     "embla-carousel-react": "8.0.0-rc11",
     "i18next": "^23.2.11",
+    "i18next-browser-languagedetector": "^7.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^13.0.2",

@@ -1,0 +1,9 @@
+{
+  "translation": {
+    "invalidEmail": "Невалидая почта",
+    "invalidPassword": "Невалидный пароль",
+    "signIn": "Войти",
+    "forgotPassword": "Забыли пароль?",
+    "createNewAccount": "Создать аккаунт"
+  }
+}
