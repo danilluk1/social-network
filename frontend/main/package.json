@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "3x2": "link:country-flag-icons/react/3x2",
     "@emotion/react": "^11.11.1",
     "@mantine/carousel": "^6.0.16",
     "@mantine/core": "^6.0.16",

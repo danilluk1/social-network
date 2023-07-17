@@ -13,12 +13,18 @@ import { useTranslation } from "react-i18next";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import { ReactComponent as Logo } from "./../assets/logo.svg";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+import { ReactComponent as About } from "./../assets/about.svg";
 import { IconArrowRight } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import ThemeSwitcher from "../components/commons/ThemeSwitcher";
+import { useMediaQuery } from "@mantine/hooks";
+import LanguageSwitcher from "../components/commons/LanguageSwitcher";
 
 const Login = () => {
-  const { t } = useTranslation();
+  const matches = useMediaQuery("(min-width: 640px)");
+  const { t } = useTranslation("login");
   const navigate = useNavigate();
 
   const form = useForm({
@@ -29,15 +35,24 @@ const Login = () => {
 
     validate: {
       email: (value) => (/^\S+@\S+$/.test(value) ? null : t("invalidEmail")),
-      password: (value) => (value.length > 6 ? null : t("invalidPassword")),
+      password: (value) => (value.length >= 6 ? null : t("invalidPassword")),
     },
   });
 
   const onLoginClick = (values: { email: string; password: string }) => {};
   return (
-    <Flex h={"100vh"}>
-      <Box w={"50%"} pt="xs" px="lg" pos="relative">
+    <Flex h={"100vh"} display={"flex"}>
+      <Box w={matches ? "50%" : "100%"} pt="lg" px="lg" pos="relative">
         <Logo />
+        <LanguageSwitcher
+          style={{
+            width: "2.3em",
+            height: "2.3em",
+            position: "absolute",
+            bottom: "60px",
+            right: "20px",
+          }}
+        />
         <ThemeSwitcher
           style={{
             width: "2.2em",
@@ -47,7 +62,7 @@ const Login = () => {
             right: "20px",
           }}
         />
-        <Group w={"100%"} position="center" mt="xl">
+        <Flex w={"100%"} h={"70vh"} align="center" justify="center">
           <form onSubmit={form.onSubmit((values) => onLoginClick(values))}>
             <Title order={3} ta="center">
               {t("signIn")}
@@ -78,12 +93,16 @@ const Login = () => {
               {t("createNewAccount").toLocaleUpperCase()}
             </Button>
           </form>
-        </Group>
+        </Flex>
         <Group></Group>
       </Box>
-      <Flex w={"50%"} bg="#FAFAFB">
-        123
-      </Flex>
+      {matches ? (
+        <Flex bg="#FAFAFB" w={"50%"} align="center" justify="center">
+          <About />
+        </Flex>
+      ) : (
+        <></>
+      )}
     </Flex>
   );
 };

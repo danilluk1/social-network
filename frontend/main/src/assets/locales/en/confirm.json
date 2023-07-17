@@ -1,0 +1,10 @@
+{
+  "confirm": {
+    "confirmEmail": "Confirm your email address",
+    "pleaseCheck": "Please check your email for the next step to signup.",
+    "contact": "Contact support",
+    "backToLogin": "Back to login",
+    "invalidCode": "Invalid code",
+    "send": "Send"
+  }
+}
