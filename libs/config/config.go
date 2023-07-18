@@ -21,6 +21,7 @@ type Config struct {
 	KafkaUrl          string `required:"true" default:"localhost:29092" envconfig:"KAFKA_URL"`
 	SchemaRegistryUrl string `required:"true" default:"http://localhost:18085" envconfig:"SCHEMA_REGISTRY_URL"`
 	SchemasPath       string `required:"true" default:"/home/danluki/Projects/social-network/libs/kafka/schemas/" envconfig:"SCHEMAS_PATH"`
+	ApiGatewayPort    string `required:"true" default:"8084" envconfig:"API_GATEWAY_PORT"`
 }
 
 func New() (*Config, error) {

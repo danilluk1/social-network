@@ -29,17 +29,20 @@ const Register = () => {
 
   const form = useForm({
     initialValues: {
+      username: "",
+      full_name: "",
       email: "",
       password: "",
     },
 
     validate: {
+      full_name: (value) => (/^)
       email: (value) => (/^\S+@\S+$/.test(value) ? null : t("invalidEmail")),
       password: (value) => (value.length >= 6 ? null : t("invalidPassword")),
     },
   });
 
-  const onLoginClick = (values: { email: string; password: string }) => {};
+  const onRegisterClick = (values: { email: string; password: string }) => {};
   return (
     <Flex h={"100vh"} display={"flex"}>
       <Box w={matches ? "50%" : "100%"} pt="lg" px="lg" pos="relative">

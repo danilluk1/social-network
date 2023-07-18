@@ -1,0 +1,8 @@
+type Mutation {
+  verifyEmail(token: String!, code: String): EmailVerificationResult!
+}
+
+type EmailVerificationResult {
+  success: Boolean!
+  message: String
+}
