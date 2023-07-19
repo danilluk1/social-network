@@ -7,6 +7,18 @@ import "google/protobuf/timestamp.proto";
 service Auth {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse) {}
+  rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse) {}
+}
+
+message VerifyEmailRequest {
+  string token = 1;
+  string secret_code = 2;
+}
+
+message VerifyEmailResponse {
+  string username = 1;
+  string email = 2;
+  bool is_activated = 3;
 }
 
 message User {

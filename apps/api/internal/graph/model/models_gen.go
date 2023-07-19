@@ -2,7 +2,40 @@
 
 package model
 
+type CreateUserInput struct {
+	Username string `json:"username"`
+	FullName string `json:"full_name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type CreateUserResponse struct {
+	User *User `json:"user"`
+}
+
 type EmailVerificationResult struct {
 	Success bool    `json:"success"`
 	Message *string `json:"message,omitempty"`
+}
+
+type LoginUserInput struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type LoginUserResponse struct {
+	User                  *User  `json:"user"`
+	SessionID             string `json:"session_id"`
+	AccessToken           string `json:"access_token"`
+	RefreshToken          string `json:"refresh_token"`
+	AccessTokenExpiresAt  string `json:"access_token_expires_at"`
+	RefreshTokenExpiresAt string `json:"refresh_token_expires_at"`
+}
+
+type User struct {
+	Username          string `json:"username"`
+	FullName          string `json:"full_name"`
+	Email             string `json:"email"`
+	PasswordChangedAt string `json:"password_changed_at"`
+	CreatedAt         string `json:"created_at"`
 }

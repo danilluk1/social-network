@@ -10,16 +10,65 @@ import (
 
 	"github.com/danilluk1/social-network/apps/api/internal/graph/generated"
 	"github.com/danilluk1/social-network/apps/api/internal/graph/model"
+	"github.com/danilluk1/social-network/libs/grpc/generated/auth"
+	"github.com/samber/lo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // VerifyEmail is the resolver for the verifyEmail field.
-func (r *mutationResolver) VerifyEmail(ctx context.Context, token string, code *string) (*model.EmailVerificationResult, error) {
-	panic(fmt.Errorf("not implemented: VerifyEmail - verifyEmail"))
+func (r *mutationResolver) VerifyEmail(ctx context.Context, token *string, code *string) (*model.EmailVerificationResult, error) {
+	res, err := r.AuthGrpc.VerifyEmail(ctx, &auth.VerifyEmailRequest{
+		SecretCode: code,
+		Token:      token,
+	})
+	return &model.EmailVerificationResult{
+		Success: true,
+		Message: lo.ToPtr("123"),
+	}, nil
 }
 
-// Token is the resolver for the token field.
-func (r *queryResolver) Token(ctx context.Context) (*string, error) {
-	panic(fmt.Errorf("not implemented: Token - token"))
+// CreateUser is the resolver for the createUser field.
+func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.CreateUserResponse, error) {
+	createdUser, err := r.AuthGrpc.CreateUser(ctx, &auth.CreateUserRequest{
+		Username: input.Username,
+		FullName: input.FullName,
+		Email:    input.Email,
+		Password: input.Password,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			code := st.Code()
+			switch code {
+			case codes.InvalidArgument:
+
+			}
+		} else {
+			//TODO: logger
+		}
+		return nil, nil
+	}
+
+	return &model.CreateUserResponse{
+		User: &model.User{
+			Username:          createdUser.User.Username,
+			FullName:          createdUser.User.FullName,
+			Email:             createdUser.User.Email,
+			PasswordChangedAt: createdUser.User.PasswordChangedAt.String(),
+			CreatedAt:         createdUser.User.CreatedAt.String(),
+		},
+	}, nil
+}
+
+// LoginUser is the resolver for the loginUser field.
+func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUserInput) (*model.LoginUserResponse, error) {
+	panic(fmt.Errorf("not implemented: LoginUser - loginUser"))
+}
+
+// GetUser is the resolver for the getUser field.
+func (r *queryResolver) GetUser(ctx context.Context, username string) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: GetUser - getUser"))
 }
 
 // Mutation returns generated.MutationResolver implementation.
@@ -30,3 +79,13 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *queryResolver) Token(ctx context.Context) (*string, error) {
+	panic(fmt.Errorf("not implemented: Token - token"))
+}

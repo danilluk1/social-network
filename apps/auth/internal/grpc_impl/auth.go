@@ -114,7 +114,7 @@ func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserReques
 		server.logger.Sugar().Error(err)
 		return nil, status.Error(codes.Internal, "failed to hash password")
 	}
-
+	server.logger.Sugar().Info("123")
 	arg := db.CreateUserTxParams{
 		CreateUserParams: db.CreateUserParams{
 			Username:       req.GetUsername(),

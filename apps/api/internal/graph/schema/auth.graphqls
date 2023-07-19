@@ -1,9 +1,45 @@
-type Mutation {
-  verifyEmail(token: String!, code: String): EmailVerificationResult!
+type Query {
+  getUser(username: String!): User!
 }
 
-type Query {
-  token: String
+type Mutation {
+  verifyEmail(token: String, code: String): EmailVerificationResult!
+
+  createUser(input: CreateUserInput!): CreateUserResponse!
+  loginUser(input: LoginUserInput!): LoginUserResponse!
+}
+
+type User {
+  username: String!
+  full_name: String!
+  email: String!
+  password_changed_at: String!
+  created_at: String!
+}
+
+input CreateUserInput {
+  username: String!
+  full_name: String!
+  email: String!
+  password: String!
+}
+
+input LoginUserInput {
+  username: String!
+  password: String!
+}
+
+type LoginUserResponse {
+  user: User!
+  session_id: String!
+  access_token: String!
+  refresh_token: String!
+  access_token_expires_at: String!
+  refresh_token_expires_at: String!
+}
+
+type CreateUserResponse {
+  user: User!
 }
 
 type EmailVerificationResult {

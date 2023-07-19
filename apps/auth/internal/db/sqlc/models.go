@@ -34,6 +34,7 @@ type VerifyEmail struct {
 	Username   string             `json:"username"`
 	Email      string             `json:"email"`
 	SecretCode string             `json:"secret_code"`
+	Token      string             `json:"token"`
 	IsUsed     bool               `json:"is_used"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 	ExpiresAt  pgtype.Timestamptz `json:"expires_at"`

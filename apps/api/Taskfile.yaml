@@ -21,7 +21,11 @@ tasks:
     cmds:
       - sqlc generate --experimental
 
+  gqlgen:
+    cmds:
+      - go generate ./...
+
   dev:
-    deps: [sqlc, migrateup_dev]
+    deps: [gqlgen]
     cmds:
       - reflex -s -r '\.go' -- go run ./cmd/main.go

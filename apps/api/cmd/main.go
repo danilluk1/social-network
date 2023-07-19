@@ -9,6 +9,7 @@ import (
 	"github.com/danilluk1/social-network/apps/api/internal/graph"
 	"github.com/danilluk1/social-network/apps/api/internal/graph/generated"
 	"github.com/danilluk1/social-network/libs/config"
+	"github.com/danilluk1/social-network/libs/grpc/clients"
 	"github.com/gofiber/fiber/v2"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"go.uber.org/zap"
@@ -42,7 +43,11 @@ func main() {
 
 	app := fiber.New()
 
-	h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	authGrpc := clients.NewAuth(cfg.AppEnv)
+
+	h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{
+		AuthGrpc: authGrpc,
+	}}))
 
 	// Serve GraphQL API
 	app.Post("/graphql", func(c *fiber.Ctx) error {
@@ -57,5 +62,9 @@ func main() {
 	})
 
 	// Start the server
-	app.Listen(":3000")
+	err = app.Listen(":" + cfg.ApiGatewayPort)
+	if err != nil {
+		panic(err)
+	}
+	logger.Sugar().Info("Api started")
 }

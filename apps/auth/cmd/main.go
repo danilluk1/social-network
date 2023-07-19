@@ -59,7 +59,10 @@ func main() {
 	schemaClient := srclient.CreateSchemaRegistryClient(cfg.SchemaRegistryUrl)
 	schema, err := schemaClient.GetLatestSchema(topics.Mail)
 	if schema == nil || err == nil {
-		schemaBytes, _ := ioutil.ReadFile(cfg.SchemasPath + topics.Mail + ".avsc")
+		schemaBytes, err := ioutil.ReadFile(cfg.SchemasPath + topics.Mail + ".avsc")
+		if err != nil {
+			panic(err)
+		}
 		_, err = schemaClient.CreateSchema(topics.Mail, string(schemaBytes), srclient.Avro)
 		if err != nil {
 			panic(err)

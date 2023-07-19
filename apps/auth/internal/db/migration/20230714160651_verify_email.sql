@@ -5,6 +5,7 @@ CREATE TABLE "verify_emails" (
   "username" varchar NOT NULL,
   "email" varchar UNIQUE NOT NULL,
   "secret_code" varchar NOT NULL,
+  "token" varchar NOT NULL,
   "is_used" bool NOT NULL DEFAULT false,
   "created_at" timestamptz NOT NULL DEFAULT (now()),
   "expires_at" timestamptz NOT NULL DEFAULT (now() + interval '15 minutes')

@@ -7,6 +7,9 @@ includes:
   auth:
     taskfile: ./apps/auth/Taskfile.yaml
     dir: ./apps/auth
+  api:
+    taskfile: ./apps/api/Taskfile.yaml
+    dir: ./apps/api
   grpc:
     taskfile: ./libs/grpc/Taskfile.yaml
     dir: ./libs/grpc
@@ -39,5 +42,9 @@ tasks:
     deps: [prepare]
     cmds:
       - task: auth:dev
+  api-dev:
+    deps: [prepare]
+    cmds:
+      - task: api:dev
   dev:
-    deps: [auth-dev, mailer-dev]
+    deps: [api-dev, auth-dev, mailer-dev]

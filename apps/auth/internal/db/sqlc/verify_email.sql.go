@@ -13,26 +13,34 @@ const createVerifyEmail = `-- name: CreateVerifyEmail :one
 INSERT INTO verify_emails (
   username,
   email,
-  secret_code
+  secret_code,
+  token
 ) VALUES (
-  $1, $2, $3
-) RETURNING id, username, email, secret_code, is_used, created_at, expires_at
+  $1, $2, $3, $4
+) RETURNING id, username, email, secret_code, token, is_used, created_at, expires_at
 `
 
 type CreateVerifyEmailParams struct {
 	Username   string `json:"username"`
 	Email      string `json:"email"`
 	SecretCode string `json:"secret_code"`
+	Token      string `json:"token"`
 }
 
 func (q *Queries) CreateVerifyEmail(ctx context.Context, arg CreateVerifyEmailParams) (VerifyEmail, error) {
-	row := q.db.QueryRow(ctx, createVerifyEmail, arg.Username, arg.Email, arg.SecretCode)
+	row := q.db.QueryRow(ctx, createVerifyEmail,
+		arg.Username,
+		arg.Email,
+		arg.SecretCode,
+		arg.Token,
+	)
 	var i VerifyEmail
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
 		&i.Email,
 		&i.SecretCode,
+		&i.Token,
 		&i.IsUsed,
 		&i.CreatedAt,
 		&i.ExpiresAt,
