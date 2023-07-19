@@ -17,7 +17,16 @@ func (r *mutationResolver) VerifyEmail(ctx context.Context, token string, code *
 	panic(fmt.Errorf("not implemented: VerifyEmail - verifyEmail"))
 }
 
+// Token is the resolver for the token field.
+func (r *queryResolver) Token(ctx context.Context) (*string, error) {
+	panic(fmt.Errorf("not implemented: Token - token"))
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
+// Query returns generated.QueryResolver implementation.
+func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
+
 type mutationResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }

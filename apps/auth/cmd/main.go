@@ -22,15 +22,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-type EmailMessage struct {
-	From        string   `json:"from"`
-	To          []string `json:"to"`
-	Cc          []string `json:"cc"`
-	Subject     string   `json:"subject"`
-	Body        string   `json:"body"`
-	Attachments []string `json:"attachments"`
-}
-
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
