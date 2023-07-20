@@ -1,6 +1,9 @@
 version: "3"
 
 includes:
+  front:
+    taskfile: ./frontend/main/Taskfile.yaml
+    dir: ./frontend/main
   mailer:
     taskfile: ./apps/mailer/Taskfile.yaml
     dir: ./apps/mailer
@@ -46,5 +49,8 @@ tasks:
     deps: [prepare]
     cmds:
       - task: api:dev
+  front-dev:
+    cmds:
+      - task: front:dev
   dev:
-    deps: [api-dev, auth-dev, mailer-dev]
+    deps: [api-dev, auth-dev, mailer-dev, front-dev]

@@ -36,13 +36,17 @@ const Register = () => {
     },
 
     validate: {
-      full_name: (value) => (/^)
       email: (value) => (/^\S+@\S+$/.test(value) ? null : t("invalidEmail")),
       password: (value) => (value.length >= 6 ? null : t("invalidPassword")),
     },
   });
 
-  const onRegisterClick = (values: { email: string; password: string }) => {};
+  const onRegisterClick = (values: {
+    email: string;
+    password: string;
+    username: string;
+    full_name: string;
+  }) => {};
   return (
     <Flex h={"100vh"} display={"flex"}>
       <Box w={matches ? "50%" : "100%"} pt="lg" px="lg" pos="relative">
@@ -66,7 +70,7 @@ const Register = () => {
           }}
         />
         <Flex w={"100%"} h={"70vh"} align="center" justify="center">
-          <form onSubmit={form.onSubmit((values) => onLoginClick(values))}>
+          <form onSubmit={form.onSubmit((values) => onRegisterClick(values))}>
             <Title order={3} ta="center">
               {t("signIn")}
             </Title>

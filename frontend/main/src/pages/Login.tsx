@@ -85,11 +85,15 @@ const Login = () => {
               <Button type="submit" rightIcon={<IconArrowRight />}>
                 {t("signIn")}
               </Button>
-              <Text onClick={() => navigate("reset")}>
+              <Text onClick={() => navigate("/reset")}>
                 {t("forgotPassword")}
               </Text>
             </Group>
-            <Button color="white" bg="black">
+            <Button
+              color="white"
+              bg="black"
+              onClick={() => navigate("/register")}
+            >
               {t("createNewAccount").toLocaleUpperCase()}
             </Button>
           </form>

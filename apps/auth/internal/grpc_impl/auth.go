@@ -2,12 +2,14 @@ package grpc_impl
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
 	db "github.com/danilluk1/social-network/apps/auth/internal/db/sqlc"
 	"github.com/danilluk1/social-network/apps/auth/internal/helpers"
+	"github.com/danilluk1/social-network/apps/auth/internal/token"
 	"github.com/danilluk1/social-network/apps/auth/internal/val"
 	"github.com/danilluk1/social-network/libs/avro"
 	"github.com/danilluk1/social-network/libs/grpc/generated/auth"
@@ -41,6 +43,122 @@ func (server *Server) VerifyEmail(ctx context.Context, req *auth.VerifyEmailRequ
 		Username:    txRes.User.Username,
 		Email:       txRes.User.Email,
 		IsActivated: txRes.User.IsEmailVerified,
+	}, nil
+}
+
+func (server *Server) Logout(ctx context.Context, req *auth.LogoutRequest) (*auth.LogoutResponse, error) {
+	_, err := server.tokenMaker.VerifyToken(req.GetRefreshToken())
+	if err != nil {
+		if errors.Is(err, token.ErrInvalidToken) {
+			return nil, status.Errorf(codes.Unauthenticated, "invalid token")
+		}
+		server.logger.Sugar().Error(err)
+		return nil, status.Errorf(codes.Internal, "Internal Server Error")
+	}
+
+	var uuid pgtype.UUID
+	err = uuid.Scan(req.GetSessionId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "SessionID must be UUID string")
+	}
+
+	_, err = server.store.UpdateSession(ctx, db.UpdateSessionParams{
+		ID:           uuid,
+		RefreshToken: pgtype.Text{String: "", Valid: true},
+	})
+	if err != nil {
+		server.logger.Sugar().Error(err)
+		return nil, status.Errorf(codes.Internal, "Internal Server Error")
+	}
+
+	return &auth.LogoutResponse{}, nil
+}
+
+func (server *Server) RefreshToken(ctx context.Context, req *auth.RefreshRequest) (*auth.RefreshResponse, error) {
+	// mtdt := server.extractMetadata(ctx)
+
+	payload, err := server.tokenMaker.VerifyToken(req.GetRefreshToken())
+	if err != nil {
+		if errors.Is(err, token.ErrInvalidToken) {
+			return nil, status.Errorf(codes.Unauthenticated, "invalid token")
+		}
+		server.logger.Sugar().Error(err)
+		return nil, status.Errorf(codes.Internal, "Internal Server Error")
+	}
+
+	user, err := server.store.GetUser(ctx, payload.Username)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, status.Errorf(codes.NotFound, "We don't have info about this user")
+		}
+		server.logger.Sugar().Error(err)
+		return nil, status.Errorf(codes.Internal, "Internal Server Error")
+	}
+
+	accessToken, _, err := server.tokenMaker.CreateToken(
+		user.Username,
+		30*time.Minute,
+	)
+	if err != nil {
+		server.logger.Sugar().Error(err)
+		return nil, status.Errorf(codes.Internal, "Internal server error")
+	}
+
+	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(
+		user.Username,
+		30*24*time.Hour,
+	)
+	if err != nil {
+		server.logger.Sugar().Error(err)
+		return nil, status.Errorf(codes.Internal, "Internal server error")
+	}
+
+	var uuidBytes pgtype.UUID
+	uuidBytes.Scan(req.GetSessionId())
+
+	currSession, err := server.store.GetSession(ctx, uuidBytes)
+	if err != nil {
+		server.logger.Sugar().Error(err)
+		return nil, status.Errorf(codes.Internal, "Internal server error")
+	}
+
+	// if currSession.ClientIp != mtdt.ClientIP || currSession.UserAgent != mtdt.UserAgent {
+	// 	return nil, status.Errorf(codes.Unauthenticated, "Client IP or UserAgent changed")
+	// }
+
+	session, err := server.store.UpdateSession(ctx, db.UpdateSessionParams{
+		ID:           uuidBytes,
+		RefreshToken: pgtype.Text{String: refreshToken, Valid: true},
+		UserAgent:    pgtype.Text{String: "", Valid: false},
+		ClientIp:     pgtype.Text{String: "", Valid: false},
+		IsBlocked:    pgtype.Bool{Bool: currSession.IsBlocked, Valid: false},
+		ExpiresAt:    pgtype.Timestamptz{Time: refreshPayload.ExpiredAt, Valid: true},
+	})
+	if err != nil {
+		server.logger.Sugar().Error(err)
+		return nil, status.Errorf(codes.Internal, "Internal server error")
+	}
+
+	return &auth.RefreshResponse{
+		RefreshToken: session.RefreshToken,
+		AccessToken:  accessToken,
+	}, nil
+}
+
+func (server *Server) ValidateUser(ctx context.Context, req *auth.ValidateUserRequest) (*auth.ValidateUserResponse, error) {
+	payload, err := server.tokenMaker.VerifyToken(req.GetAccessToken())
+	if err != nil {
+		if errors.Is(err, token.ErrInvalidToken) {
+			return nil, status.Errorf(codes.Unauthenticated, "invalid token")
+		}
+		server.logger.Sugar().Error(err)
+		return nil, status.Errorf(codes.Internal, "Internal Server Error")
+	}
+
+	return &auth.ValidateUserResponse{
+		Id:        payload.ID.ID(),
+		ExpiresAt: payload.ExpiredAt.Unix(),
+		IssuedAt:  payload.IssuedAt.Unix(),
 	}, nil
 }
 

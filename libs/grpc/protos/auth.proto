@@ -8,6 +8,36 @@ service Auth {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse) {}
   rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse) {}
+  rpc ValidateUser(ValidateUserRequest) returns (ValidateUserResponse) {}
+  rpc RefreshToken(RefreshRequest) returns (RefreshResponse) {}
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {}
+}
+
+message RefreshRequest {
+  string sessionId = 1;
+  string refreshToken = 2;
+}
+
+message RefreshResponse {
+  string refreshToken = 1;
+  string accessToken = 2;
+}
+
+message LogoutRequest {
+  string refreshToken = 1;
+  string sessionId = 2;
+}
+
+message LogoutResponse {}
+
+message ValidateUserRequest {
+ string access_token = 1;
+}
+
+message ValidateUserResponse {
+  uint32 id = 1;
+  int64 expiresAt = 2;
+  int64 issuedAt = 3;
 }
 
 message VerifyEmailRequest {
