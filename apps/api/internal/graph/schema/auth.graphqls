@@ -43,6 +43,7 @@ type CreateUserResponse {
 }
 
 type EmailVerificationResult {
-  success: Boolean!
-  message: String
+  usename: String!
+  email: String!
+  is_activated: Boolean!
 }

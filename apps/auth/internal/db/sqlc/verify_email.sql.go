@@ -47,3 +47,34 @@ func (q *Queries) CreateVerifyEmail(ctx context.Context, arg CreateVerifyEmailPa
 	)
 	return i, err
 }
+
+const verifyEmail = `-- name: VerifyEmail :one
+UPDATE verify_emails
+SET is_used = TRUE
+WHERE
+  (secret_code = $1 OR token = $2)
+  AND NOW() < expires_at
+  AND is_used = false
+RETURNING id, username, email, secret_code, token, is_used, created_at, expires_at
+`
+
+type VerifyEmailParams struct {
+	SecretCode string `json:"secret_code"`
+	Token      string `json:"token"`
+}
+
+func (q *Queries) VerifyEmail(ctx context.Context, arg VerifyEmailParams) (VerifyEmail, error) {
+	row := q.db.QueryRow(ctx, verifyEmail, arg.SecretCode, arg.Token)
+	var i VerifyEmail
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.SecretCode,
+		&i.Token,
+		&i.IsUsed,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}

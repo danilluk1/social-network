@@ -14,8 +14,9 @@ type CreateUserResponse struct {
 }
 
 type EmailVerificationResult struct {
-	Success bool    `json:"success"`
-	Message *string `json:"message,omitempty"`
+	Usename     string `json:"usename"`
+	Email       string `json:"email"`
+	IsActivated bool   `json:"is_activated"`
 }
 
 type LoginUserInput struct {

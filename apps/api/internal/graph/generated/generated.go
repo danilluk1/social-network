@@ -49,8 +49,9 @@ type ComplexityRoot struct {
 	}
 
 	EmailVerificationResult struct {
-		Message func(childComplexity int) int
-		Success func(childComplexity int) int
+		Email       func(childComplexity int) int
+		IsActivated func(childComplexity int) int
+		Usename     func(childComplexity int) int
 	}
 
 	LoginUserResponse struct {
@@ -112,19 +113,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CreateUserResponse.User(childComplexity), true
 
-	case "EmailVerificationResult.message":
-		if e.complexity.EmailVerificationResult.Message == nil {
+	case "EmailVerificationResult.email":
+		if e.complexity.EmailVerificationResult.Email == nil {
 			break
 		}
 
-		return e.complexity.EmailVerificationResult.Message(childComplexity), true
+		return e.complexity.EmailVerificationResult.Email(childComplexity), true
 
-	case "EmailVerificationResult.success":
-		if e.complexity.EmailVerificationResult.Success == nil {
+	case "EmailVerificationResult.is_activated":
+		if e.complexity.EmailVerificationResult.IsActivated == nil {
 			break
 		}
 
-		return e.complexity.EmailVerificationResult.Success(childComplexity), true
+		return e.complexity.EmailVerificationResult.IsActivated(childComplexity), true
+
+	case "EmailVerificationResult.usename":
+		if e.complexity.EmailVerificationResult.Usename == nil {
+			break
+		}
+
+		return e.complexity.EmailVerificationResult.Usename(childComplexity), true
 
 	case "LoginUserResponse.access_token":
 		if e.complexity.LoginUserResponse.AccessToken == nil {
@@ -403,8 +411,9 @@ type CreateUserResponse {
 }
 
 type EmailVerificationResult {
-  success: Boolean!
-  message: String
+  usename: String!
+  email: String!
+  is_activated: Boolean!
 }
 `, BuiltIn: false},
 }
@@ -592,8 +601,8 @@ func (ec *executionContext) fieldContext_CreateUserResponse_user(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _EmailVerificationResult_success(ctx context.Context, field graphql.CollectedField, obj *model.EmailVerificationResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_EmailVerificationResult_success(ctx, field)
+func (ec *executionContext) _EmailVerificationResult_usename(ctx context.Context, field graphql.CollectedField, obj *model.EmailVerificationResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EmailVerificationResult_usename(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -606,7 +615,95 @@ func (ec *executionContext) _EmailVerificationResult_success(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Success, nil
+		return obj.Usename, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EmailVerificationResult_usename(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EmailVerificationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EmailVerificationResult_email(ctx context.Context, field graphql.CollectedField, obj *model.EmailVerificationResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EmailVerificationResult_email(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EmailVerificationResult_email(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EmailVerificationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EmailVerificationResult_is_activated(ctx context.Context, field graphql.CollectedField, obj *model.EmailVerificationResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EmailVerificationResult_is_activated(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsActivated, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -623,7 +720,7 @@ func (ec *executionContext) _EmailVerificationResult_success(ctx context.Context
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_EmailVerificationResult_success(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_EmailVerificationResult_is_activated(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "EmailVerificationResult",
 		Field:      field,
@@ -631,47 +728,6 @@ func (ec *executionContext) fieldContext_EmailVerificationResult_success(ctx con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _EmailVerificationResult_message(ctx context.Context, field graphql.CollectedField, obj *model.EmailVerificationResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_EmailVerificationResult_message(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Message, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_EmailVerificationResult_message(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "EmailVerificationResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -992,10 +1048,12 @@ func (ec *executionContext) fieldContext_Mutation_verifyEmail(ctx context.Contex
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "success":
-				return ec.fieldContext_EmailVerificationResult_success(ctx, field)
-			case "message":
-				return ec.fieldContext_EmailVerificationResult_message(ctx, field)
+			case "usename":
+				return ec.fieldContext_EmailVerificationResult_usename(ctx, field)
+			case "email":
+				return ec.fieldContext_EmailVerificationResult_email(ctx, field)
+			case "is_activated":
+				return ec.fieldContext_EmailVerificationResult_is_activated(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type EmailVerificationResult", field.Name)
 		},
@@ -3483,13 +3541,21 @@ func (ec *executionContext) _EmailVerificationResult(ctx context.Context, sel as
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("EmailVerificationResult")
-		case "success":
-			out.Values[i] = ec._EmailVerificationResult_success(ctx, field, obj)
+		case "usename":
+			out.Values[i] = ec._EmailVerificationResult_usename(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "message":
-			out.Values[i] = ec._EmailVerificationResult_message(ctx, field, obj)
+		case "email":
+			out.Values[i] = ec._EmailVerificationResult_email(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "is_activated":
+			out.Values[i] = ec._EmailVerificationResult_is_activated(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

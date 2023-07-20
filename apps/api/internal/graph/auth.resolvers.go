@@ -12,6 +12,7 @@ import (
 	"github.com/danilluk1/social-network/apps/api/internal/graph/model"
 	"github.com/danilluk1/social-network/libs/grpc/generated/auth"
 	"github.com/samber/lo"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -19,12 +20,17 @@ import (
 // VerifyEmail is the resolver for the verifyEmail field.
 func (r *mutationResolver) VerifyEmail(ctx context.Context, token *string, code *string) (*model.EmailVerificationResult, error) {
 	res, err := r.AuthGrpc.VerifyEmail(ctx, &auth.VerifyEmailRequest{
-		SecretCode: code,
-		Token:      token,
+		SecretCode: lo.FromPtrOr(token, ""),
+		Token:      lo.FromPtrOr(token, ""),
 	})
+	if err != nil {
+		return nil, gqlerror.Errorf("Error")
+	}
+
 	return &model.EmailVerificationResult{
-		Success: true,
-		Message: lo.ToPtr("123"),
+		Usename:     res.GetUsername(),
+		Email:       res.GetEmail(),
+		IsActivated: res.GetIsActivated(),
 	}, nil
 }
 

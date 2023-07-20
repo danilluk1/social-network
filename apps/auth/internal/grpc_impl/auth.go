@@ -3,9 +3,11 @@ package grpc_impl
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	db "github.com/danilluk1/social-network/apps/auth/internal/db/sqlc"
+	"github.com/danilluk1/social-network/apps/auth/internal/helpers"
 	"github.com/danilluk1/social-network/apps/auth/internal/val"
 	"github.com/danilluk1/social-network/libs/avro"
 	"github.com/danilluk1/social-network/libs/grpc/generated/auth"
@@ -21,6 +23,26 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func (server *Server) VerifyEmail(ctx context.Context, req *auth.VerifyEmailRequest) (*auth.VerifyEmailResponse, error) {
+	txRes, err := server.store.VerifyEmailTx(ctx, db.VerifyEmailTxParams{
+		SecretCode: &req.SecretCode,
+		Token:      &req.Token,
+	})
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, status.Errorf(codes.NotFound, "We don't have info about this activation message")
+		}
+		server.logger.Sugar().Error(err)
+		return nil, status.Errorf(codes.Internal, "failed to verify email")
+	}
+
+	return &auth.VerifyEmailResponse{
+		Username:    txRes.User.Username,
+		Email:       txRes.User.Email,
+		IsActivated: txRes.User.IsEmailVerified,
+	}, nil
+}
 
 func (server *Server) LoginUser(ctx context.Context, req *auth.LoginUserRequest) (*auth.LoginUserResponse, error) {
 	violations := validateLoginUserRequest(req)
@@ -114,7 +136,6 @@ func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserReques
 		server.logger.Sugar().Error(err)
 		return nil, status.Error(codes.Internal, "failed to hash password")
 	}
-	server.logger.Sugar().Info("123")
 	arg := db.CreateUserTxParams{
 		CreateUserParams: db.CreateUserParams{
 			Username:       req.GetUsername(),
@@ -126,13 +147,14 @@ func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserReques
 			verifyEmail, err := server.store.CreateVerifyEmail(ctx, db.CreateVerifyEmailParams{
 				Username:   user.Username,
 				Email:      user.Email,
-				SecretCode: utils.RandomString(32),
+				SecretCode: strconv.Itoa(helpers.GenerateEasyCode()),
+				Token:      utils.RandomString(32),
 			})
 			if err != nil {
 				return err
 			}
 
-			verifyUrl := fmt.Sprintf("http://localhost:9090/verify_email?id=%d&secret_code=%s", verifyEmail.ID, verifyEmail.SecretCode)
+			verifyUrl := fmt.Sprintf("http://localhost:9090/verify_email?id=%d&token=%s", verifyEmail.ID, verifyEmail.Token)
 			email := types.EmailMessage{
 				From:    "socialnetwork@mail.ru",
 				To:      []string{user.Email},
@@ -140,8 +162,8 @@ func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserReques
 				Subject: "Welcome to our Social Network!",
 				Body: fmt.Sprintf(`Hello %s,<br/>
 				Thank you for registering with us <br/>
-				Please <a href="%s">Click here</a> to verify your email address.<br/>
-				`, user.FullName, verifyUrl),
+				Please <a href="%s">Click here</a> to verify your email address. Or enter secret code %s<br/>
+				`, user.FullName, verifyUrl, verifyEmail.SecretCode),
 				Attachments: []string{},
 			}
 
