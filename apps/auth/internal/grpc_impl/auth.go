@@ -148,15 +148,12 @@ func (server *Server) RefreshToken(ctx context.Context, req *auth.RefreshRequest
 func (server *Server) ValidateUser(ctx context.Context, req *auth.ValidateUserRequest) (*auth.ValidateUserResponse, error) {
 	payload, err := server.tokenMaker.VerifyToken(req.GetAccessToken())
 	if err != nil {
-		if errors.Is(err, token.ErrInvalidToken) {
-			return nil, status.Errorf(codes.Unauthenticated, "invalid token")
-		}
-		server.logger.Sugar().Error(err)
-		return nil, status.Errorf(codes.Internal, "Internal Server Error")
+		return nil, err
 	}
 
 	return &auth.ValidateUserResponse{
-		Id:        payload.ID.ID(),
+		Id:        payload.ID.String(),
+		Username:  payload.Username,
 		ExpiresAt: payload.ExpiredAt.Unix(),
 		IssuedAt:  payload.IssuedAt.Unix(),
 	}, nil
@@ -222,7 +219,7 @@ func (server *Server) LoginUser(ctx context.Context, req *auth.LoginUserRequest)
 		RefreshTokenExpiresAt: timestamppb.New(refreshPayload.ExpiredAt),
 		RefreshToken:          refreshToken,
 		User: &auth.User{
-			Username:          user.FullName,
+			Username:          user.Username,
 			FullName:          user.FullName,
 			Email:             user.Email,
 			CreatedAt:         timestamppb.New(user.CreatedAt.Time),

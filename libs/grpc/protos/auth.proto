@@ -35,9 +35,10 @@ message ValidateUserRequest {
 }
 
 message ValidateUserResponse {
-  uint32 id = 1;
-  int64 expiresAt = 2;
-  int64 issuedAt = 3;
+  string id = 1;
+  string username = 2;
+  int64 expiresAt = 3;
+  int64 issuedAt = 4;
 }
 
 message VerifyEmailRequest {

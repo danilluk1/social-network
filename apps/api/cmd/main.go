@@ -8,8 +8,10 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/danilluk1/social-network/apps/api/internal/graph"
 	"github.com/danilluk1/social-network/apps/api/internal/graph/generated"
+	"github.com/danilluk1/social-network/apps/api/internal/graph/middleware"
 	"github.com/danilluk1/social-network/libs/config"
 	"github.com/danilluk1/social-network/libs/grpc/clients"
+	"github.com/go-chi/chi"
 	"github.com/gofiber/fiber/v2"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"go.uber.org/zap"
@@ -41,7 +43,7 @@ func main() {
 
 	zap.ReplaceGlobals(logger)
 
-	app := fiber.New()
+	router := chi.NewRouter()
 
 	authGrpc := clients.NewAuth(cfg.AppEnv)
 
@@ -49,22 +51,18 @@ func main() {
 		AuthGrpc: authGrpc,
 	}}))
 
+	router.Use(middleware.Auth(authGrpc))
+
 	// Serve GraphQL API
-	app.Post("/graphql", func(c *fiber.Ctx) error {
-		wrapHandler(h.ServeHTTP)(c)
-		return nil
-	})
+	router.Post("/graphql", h.ServeHTTP)
 
 	// Serve GraphQL Playground
-	app.Get("/playground", func(c *fiber.Ctx) error {
-		wrapHandler(playground.Handler("GraphQL", "/graphql"))(c)
-		return nil
-	})
+	router.Get("/playground", playground.Handler("GraphQL", "/graphql"))
 
 	// Start the server
-	err = app.Listen(":" + cfg.ApiGatewayPort)
+	logger.Sugar().Info("Api started")
+	err = http.ListenAndServe(":"+cfg.ApiGatewayPort, router)
 	if err != nil {
 		panic(err)
 	}
-	logger.Sugar().Info("Api started")
 }

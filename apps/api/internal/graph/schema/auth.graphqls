@@ -7,6 +7,17 @@ type Mutation {
 
   createUser(input: CreateUserInput!): CreateUserResponse!
   loginUser(input: LoginUserInput!): LoginUserResponse!
+  refreshToken(input: RefreshInput!): RefreshResponse!
+}
+
+type RefreshRequest {
+  session_id: String!
+  refresh_token: String!
+}
+
+type RefreshResponse {
+  refresh_token: String!
+  access_token: String!
 }
 
 type User {

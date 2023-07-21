@@ -6,6 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.35
 	github.com/danilluk1/social-network/libs/config v0.0.0-20230718122854-91f13035a740
 	github.com/danilluk1/social-network/libs/grpc v0.0.0-20230719052246-dbb784ba0147
+	github.com/go-chi/chi v1.5.4
 	github.com/gofiber/fiber/v2 v2.48.0
 	github.com/samber/lo v1.38.1
 	github.com/valyala/fasthttp v1.48.0

@@ -53,7 +53,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 		} else {
 			//TODO: logger
 		}
-		return nil, nil
+		return nil, err
 	}
 
 	return &model.CreateUserResponse{
@@ -69,7 +69,26 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 
 // LoginUser is the resolver for the loginUser field.
 func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUserInput) (*model.LoginUserResponse, error) {
-	panic(fmt.Errorf("not implemented: LoginUser - loginUser"))
+	res, err := r.AuthGrpc.LoginUser(ctx, &auth.LoginUserRequest{
+		Username: input.Username,
+		Password: input.Password,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.LoginUserResponse{
+		User: &model.User{
+			Username:          res.User.Username,
+			FullName:          res.User.FullName,
+			Email:             res.User.Email,
+			CreatedAt:         res.User.CreatedAt.String(),
+			PasswordChangedAt: res.User.PasswordChangedAt.String(),
+		},
+		SessionID:    res.SessionId,
+		AccessToken:  res.AccessToken,
+		RefreshToken: res.RefreshToken,
+	}, nil
 }
 
 // GetUser is the resolver for the getUser field.
