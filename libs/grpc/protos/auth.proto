@@ -14,7 +14,6 @@ service Auth {
 }
 
 message RefreshRequest {
-  string sessionId = 1;
   string refreshToken = 2;
 }
 

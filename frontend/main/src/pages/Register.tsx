@@ -21,11 +21,18 @@ import { useNavigate } from "react-router-dom";
 import ThemeSwitcher from "../components/commons/ThemeSwitcher";
 import { useMediaQuery } from "@mantine/hooks";
 import LanguageSwitcher from "../components/commons/LanguageSwitcher";
+import { gql, useMutation } from "@apollo/client";
 
+const REGISTER_USER = gql`
+  mutation createUser(input: {
+    
+  })
+`;
 const Register = () => {
   const matches = useMediaQuery("(min-width: 640px)");
-  const { t } = useTranslation("login");
+  const { t } = useTranslation("register");
   const navigate = useNavigate();
+  const;
 
   const form = useForm({
     initialValues: {
@@ -47,6 +54,7 @@ const Register = () => {
     username: string;
     full_name: string;
   }) => {};
+
   return (
     <Flex h={"100vh"} display={"flex"}>
       <Box w={matches ? "50%" : "100%"} pt="lg" px="lg" pos="relative">
@@ -78,26 +86,33 @@ const Register = () => {
               mb={"sm"}
               withAsterisk
               label="Email"
-              placeholder="your@email.com"
               {...form.getInputProps("email")}
             />
             <PasswordInput
               mb={"sm"}
               withAsterisk
               label="Password"
-              placeholder="your@email.com"
               {...form.getInputProps("password")}
+            />
+            <TextInput
+              mb={"sm"}
+              withAsterisk
+              label="Username"
+              {...form.getInputProps("username")}
+            />
+            <TextInput
+              mb={"sm"}
+              withAsterisk
+              label="Full name"
+              {...form.getInputProps("full_name")}
             />
             <Group mb={"lg"}>
               <Button type="submit" rightIcon={<IconArrowRight />}>
-                {t("signIn")}
+                {t("signUp")}
               </Button>
-              <Text onClick={() => navigate("reset")}>
-                {t("forgotPassword")}
-              </Text>
             </Group>
-            <Button color="white" bg="black">
-              {t("createNewAccount").toLocaleUpperCase()}
+            <Button color="white" bg="black" onClick={() => navigate("/login")}>
+              {t("signIn").toLocaleUpperCase()}
             </Button>
           </form>
         </Flex>

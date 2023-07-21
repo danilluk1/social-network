@@ -1,0 +1,10 @@
+{
+  "register": {
+    "invalidEmail": "Невалидая почта",
+    "invalidPassword": "Невалидный пароль",
+    "invalidUsername": "Невалидный юзернейм",
+    "invalidFullName": "Невалидное имя",
+    "signUp": "Зарегистрироваться",
+    "signIn": "Войти"
+  }
+}

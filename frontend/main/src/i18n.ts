@@ -8,6 +8,9 @@ import ruJSONLogin from "./assets/locales/ru/login.json";
 import enJSONConfirm from "./assets/locales/en/confirm.json";
 import ruJSONConfirm from "./assets/locales/ru/confirm.json";
 
+import enJSONRegister from "./assets/locales/en/register.json";
+import ruJSONRegister from "./assets/locales/ru/register.json";
+
 await i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -18,7 +21,7 @@ await i18n
       escapeValue: false,
     },
     resources: {
-      en: { ...enJSONConfirm, ...enJSONLogin },
-      ru: { ...ruJSONConfirm, ...ruJSONLogin },
+      en: { ...enJSONConfirm, ...enJSONLogin, ...enJSONRegister },
+      ru: { ...ruJSONConfirm, ...ruJSONLogin, ...ruJSONRegister },
     },
   });

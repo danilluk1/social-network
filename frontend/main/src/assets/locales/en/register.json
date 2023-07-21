@@ -1,0 +1,10 @@
+{
+  "register": {
+    "invalidEmail": "Invalid email",
+    "invalidPassword": "Invalid password",
+    "invalidUsername": "Invalid usernam",
+    "invalidFullName": "Invalid full name",
+    "signUp": "Register",
+    "signIn": "Sign in"
+  }
+}

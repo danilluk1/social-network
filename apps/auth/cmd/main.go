@@ -31,7 +31,6 @@ func main() {
 	}
 
 	var logger *zap.Logger
-
 	if cfg.AppEnv == "development" {
 		l, _ := zap.NewDevelopment()
 		logger = l

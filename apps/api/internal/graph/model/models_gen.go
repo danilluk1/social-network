@@ -33,6 +33,16 @@ type LoginUserResponse struct {
 	RefreshTokenExpiresAt string `json:"refresh_token_expires_at"`
 }
 
+type RefreshInput struct {
+	SessionID    string `json:"session_id"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+type RefreshResponse struct {
+	RefreshToken string `json:"refresh_token"`
+	AccessToken  string `json:"access_token"`
+}
+
 type User struct {
 	Username          string `json:"username"`
 	FullName          string `json:"full_name"`

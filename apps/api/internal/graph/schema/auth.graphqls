@@ -10,7 +10,7 @@ type Mutation {
   refreshToken(input: RefreshInput!): RefreshResponse!
 }
 
-type RefreshRequest {
+input RefreshInput {
   session_id: String!
   refresh_token: String!
 }

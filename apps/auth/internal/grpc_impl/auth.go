@@ -113,10 +113,7 @@ func (server *Server) RefreshToken(ctx context.Context, req *auth.RefreshRequest
 		return nil, status.Errorf(codes.Internal, "Internal server error")
 	}
 
-	var uuidBytes pgtype.UUID
-	uuidBytes.Scan(req.GetSessionId())
-
-	currSession, err := server.store.GetSession(ctx, uuidBytes)
+	currSession, err := server.store.GetSessionByRefreshToken(ctx, req.GetRefreshToken())
 	if err != nil {
 		server.logger.Sugar().Error(err)
 		return nil, status.Errorf(codes.Internal, "Internal server error")
@@ -127,7 +124,7 @@ func (server *Server) RefreshToken(ctx context.Context, req *auth.RefreshRequest
 	// }
 
 	session, err := server.store.UpdateSession(ctx, db.UpdateSessionParams{
-		ID:           uuidBytes,
+		ID:           currSession.ID,
 		RefreshToken: pgtype.Text{String: refreshToken, Valid: true},
 		UserAgent:    pgtype.Text{String: "", Valid: false},
 		ClientIp:     pgtype.Text{String: "", Valid: false},

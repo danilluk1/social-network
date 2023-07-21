@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@apollo/client": "^3.7.17",
     "@emotion/react": "^11.11.1",
     "@mantine/carousel": "^6.0.16",
     "@mantine/core": "^6.0.16",
@@ -28,6 +29,7 @@
     "country-flag-icons": "^1.5.7",
     "dayjs": "^1.11.9",
     "embla-carousel-react": "8.0.0-rc11",
+    "graphql": "^16.7.1",
     "i18next": "^23.2.11",
     "i18next-browser-languagedetector": "^7.1.0",
     "react": "^18.2.0",

@@ -91,6 +91,21 @@ func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUserI
 	}, nil
 }
 
+// RefreshToken is the resolver for the refreshToken field.
+func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshInput) (*model.RefreshResponse, error) {
+	res, err := r.AuthGrpc.RefreshToken(ctx, &auth.RefreshRequest{
+		RefreshToken: input.RefreshToken,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.RefreshResponse{
+		RefreshToken: res.RefreshToken,
+		AccessToken:  res.AccessToken,
+	}, nil
+}
+
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context, username string) (*model.User, error) {
 	panic(fmt.Errorf("not implemented: GetUser - getUser"))
