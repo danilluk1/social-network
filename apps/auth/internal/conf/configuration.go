@@ -43,6 +43,9 @@ func (c *DBConfiguration) Validate() error {
 }
 
 type KafkaConfiguration struct {
+	KafkaUrl          string `default:"localhost:29092" envconfig:"KAFKA_URL"`
+	SchemaRegistryUrl string `default:"http://localhost:18085" envconfig:"SCHEMA_REGISTRY_URL"`
+	SchemasPath       string `default:"/home/danluki/Projects/social-network/libs/kafka/schemas/" envconfig:"SCHEMAS_PATH"`
 }
 
 type PASETOConfiguration struct {

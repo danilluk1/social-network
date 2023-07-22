@@ -11,6 +11,7 @@ import (
 	"github.com/danilluk1/social-network/apps/auth/internal/gapi"
 	"github.com/danilluk1/social-network/apps/auth/internal/token"
 	"github.com/danilluk1/social-network/apps/auth/internal/utilities"
+	"github.com/danilluk1/social-network/libs/grpc/generated/auth"
 	"github.com/danilluk1/social-network/libs/grpc/servers"
 	"github.com/danilluk1/social-network/libs/kafka/topics"
 	"github.com/jackc/pgx/v5"
@@ -18,6 +19,7 @@ import (
 	"github.com/segmentio/kafka-go"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 )
 
 var serveCmd = cobra.Command{
@@ -74,14 +76,18 @@ func serve(ctx context.Context) {
 		SchemaClient: schemaClient,
 	}
 
-	grpcApi := gapi.NewWithVersion(ctx, services, utilities.Version)
+	grpcApi := gapi.NewGAPIWithVersion(ctx, services, utilities.Version)
 	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", servers.AUTH_SERVER_PORT))
 	if err != nil {
 		logrus.Fatalf("Failed to listen: %+v", err)
 	}
 
+	grpcServer := grpc.NewServer()
+	auth.RegisterAuthServer(grpcServer, grpcApi)
+	go grpcServer.Serve(lis)
+	defer grpcServer.GracefulStop()
+
 	addr := net.JoinHostPort(config.GRPC.Host, config.GRPC.Port)
 	logrus.Infof("Auth API started on: %s", addr)
 
-	grpcApi.ListenAndServe(ctx, addr)
 }
