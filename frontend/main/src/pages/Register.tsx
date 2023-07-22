@@ -25,14 +25,14 @@ import { gql, useMutation } from "@apollo/client";
 
 const REGISTER_USER = gql`
   mutation createUser(input: {
-    
+
   })
 `;
 const Register = () => {
   const matches = useMediaQuery("(min-width: 640px)");
   const { t } = useTranslation("register");
   const navigate = useNavigate();
-  const;
+  // const;
 
   const form = useForm({
     initialValues: {
