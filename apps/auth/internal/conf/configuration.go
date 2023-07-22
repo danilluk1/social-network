@@ -42,6 +42,9 @@ func (c *DBConfiguration) Validate() error {
 	return nil
 }
 
+type KafkaConfiguration struct {
+}
+
 type PASETOConfiguration struct {
 	Secret string   `json:"secret" required:"true"`
 	Exp    int      `json:"exp"`
@@ -62,6 +65,10 @@ type GRPCConfiguration struct {
 	Port string `envconfig:"PORT" default:"50051"`
 }
 
+func (c *GRPCConfiguration) Validate() error {
+	return nil
+}
+
 type GlobalConfiguration struct {
 	GRPC                  GRPCConfiguration
 	DB                    DBConfiguration
@@ -79,7 +86,7 @@ type GlobalConfiguration struct {
 
 	SiteURL           string              `json:"site_url" split_words:"true" required:"true"`
 	PasswordMinLength int                 `json:"password_min_length" split_words:"true"`
-	JWT               PASETOConfiguration `json:"jwt"`
+	PASETO            PASETOConfiguration `json:"jwt"`
 	Mailer            MailerConfiguration `json:"mailer"`
 	DisableSignup     bool                `json:"disable_signup" split_words:"true"`
 	MFA               MFAConfiguration    `json:"MFA"`
