@@ -27,7 +27,6 @@ import (
 )
 
 var serveCmd = cobra.Command{
-	Use:  "serve",
 	Long: "Start GRPC server",
 	Run: func(cmd *cobra.Command, args []string) {
 		serve(cmd.Context())
@@ -95,7 +94,7 @@ func serve(ctx context.Context) {
 		logger.Sugar().Fatalf("failed to listen: %+v", err)
 	}
 
-	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
+	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLoggerWrapper(logger))
 	grpcServer := grpc.NewServer(grpcLogger)
 	auth.RegisterAuthServer(grpcServer, grpcApi)
 	reflection.Register(grpcServer)
@@ -104,7 +103,7 @@ func serve(ctx context.Context) {
 	defer grpcServer.GracefulStop()
 
 	addr := net.JoinHostPort(config.GRPC.Host, config.GRPC.Port)
-	logger.Sugar().Infof("auth GAPI started on: %s", addr)
+	logger.Sugar().Infof("Auth microservice started on: %s", addr)
 
 	exitSignal := make(chan os.Signal, 1)
 	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)

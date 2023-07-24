@@ -9,6 +9,7 @@ import (
 	"github.com/danilluk1/social-network/libs/grpc/generated/auth"
 	"github.com/riferrei/srclient"
 	"github.com/segmentio/kafka-go"
+	"go.uber.org/zap"
 )
 
 const (
@@ -27,18 +28,12 @@ type Services struct {
 	TokenMaker   token.Maker
 	KafkaWriter  *kafka.Writer
 	SchemaClient *srclient.SchemaRegistryClient
+	Logger       *zap.Logger
 }
 
 func NewGAPI(services *Services) *GAPI {
 	return NewGAPIWithVersion(context.Background(), services, defaultVersion)
 }
-
-// func (g *GAPI) deprecationNotices(ctx context.Context) {
-// 	config := g.services.Conf
-
-// 	log := logrus.WithField("component", "gapi")
-
-// }
 
 func NewGAPIWithVersion(ctx context.Context, services *Services, version string) *GAPI {
 	gapi := &GAPI{

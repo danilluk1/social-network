@@ -47,7 +47,7 @@ func (server *GAPI) CreateUser(ctx context.Context, req *auth.CreateUserRequest)
 	}
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		// server.services.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Error(codes.Internal, "failed to hash password")
 	}
 	arg := db.CreateUserTxParams{

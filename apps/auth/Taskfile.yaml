@@ -1,6 +1,31 @@
 version: "3"
 
 tasks:
+  build:
+    deps: [deps]
+  cmds:
+    - CGO_ENABLED=0 go build {{.FLAGS}}
+    - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build $(FLAGS) -o gotrue-arm64
+
+  deps:
+    cmds:
+      - go mod download
+      - go mod verify
+
+  dev-deps:
+    cmds:
+      - go install github.com/securego/gosec/v2/cmd/gosec@latest
+      - go install honnef.co/go/tools/cmd/staticcheck@latest
+
+  tests:
+    deps: [build]
+    cmds:
+      - go test {{.CHECK_FILES}} -coverprofile=coverage.out -coverpkg ./... -p i -race -v -count=1
+
+  vet:
+    cmds:
+      - go vet {{.CHECK_FILES}}
+
   migrateup_dev:
     cmds:
       - goose -v -dir "internal/db/migration" postgres "postgresql://test:test@localhost:5432/sn_auth?sslmode=disable" up
@@ -11,11 +36,11 @@ tasks:
 
   migrateup:
     cmds:
-      - goose -v -dir "internal/db/migration" postgres {{.DB_URL}} up
+      - goose -v -dir "{{.MIGRATION_PATH}}" postgres {{.DB_URL}} up
 
   new_migration:
     cmds:
-      - goose -v -dir "internal/db/migration" create {{.NAME}} sql
+      - goose -v -dir "{{.MIGRATION_PATH}}" create {{.NAME}} sql
 
   sqlc:
     cmds:

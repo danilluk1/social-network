@@ -19,7 +19,7 @@ func (server *GAPI) VerifyEmail(ctx context.Context, req *auth.VerifyEmailReques
 		if err == pgx.ErrNoRows {
 			return nil, status.Errorf(codes.NotFound, "We don't have info about this activation message")
 		}
-		// server.logger.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Errorf(codes.Internal, "failed to verify email")
 	}
 

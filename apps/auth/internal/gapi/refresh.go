@@ -22,7 +22,7 @@ func (server *GAPI) RefreshToken(ctx context.Context, req *auth.RefreshRequest) 
 		if errors.Is(err, token.ErrInvalidToken) {
 			return nil, status.Errorf(codes.Unauthenticated, "invalid token")
 		}
-		// server.logger.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Errorf(codes.Internal, "Internal Server Error")
 	}
 
@@ -31,7 +31,7 @@ func (server *GAPI) RefreshToken(ctx context.Context, req *auth.RefreshRequest) 
 		if err == pgx.ErrNoRows {
 			return nil, status.Errorf(codes.NotFound, "We don't have info about this user")
 		}
-		// server.logger.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Errorf(codes.Internal, "Internal Server Error")
 	}
 
@@ -40,7 +40,7 @@ func (server *GAPI) RefreshToken(ctx context.Context, req *auth.RefreshRequest) 
 		30*time.Minute,
 	)
 	if err != nil {
-		// server.logger.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Errorf(codes.Internal, "Internal server error")
 	}
 
@@ -49,13 +49,13 @@ func (server *GAPI) RefreshToken(ctx context.Context, req *auth.RefreshRequest) 
 		30*24*time.Hour,
 	)
 	if err != nil {
-		// server.logger.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Errorf(codes.Internal, "Internal server error")
 	}
 
 	currSession, err := server.services.Store.GetSessionByRefreshToken(ctx, req.GetRefreshToken())
 	if err != nil {
-		// server.logger.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Errorf(codes.Internal, "Internal server error")
 	}
 
@@ -72,7 +72,7 @@ func (server *GAPI) RefreshToken(ctx context.Context, req *auth.RefreshRequest) 
 		ExpiresAt:    pgtype.Timestamptz{Time: refreshPayload.ExpiredAt, Valid: true},
 	})
 	if err != nil {
-		// server.logger.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Errorf(codes.Internal, "Internal server error")
 	}
 

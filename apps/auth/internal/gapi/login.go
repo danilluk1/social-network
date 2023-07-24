@@ -63,7 +63,7 @@ func (server *GAPI) LoginUser(ctx context.Context, req *auth.LoginUserRequest) (
 		30*24*time.Hour,
 	)
 	if err != nil {
-		// server.logger.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Errorf(codes.Internal, "Internal server error")
 	}
 
@@ -77,7 +77,7 @@ func (server *GAPI) LoginUser(ctx context.Context, req *auth.LoginUserRequest) (
 		ExpiresAt:    pgtype.Timestamptz{Time: refreshPayload.ExpiredAt, Valid: true},
 	})
 	if err != nil {
-		// server.logger.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Errorf(codes.Internal, "Internal server error")
 	}
 

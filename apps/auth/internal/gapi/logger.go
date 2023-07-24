@@ -4,14 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/rs/zerolog/log"
-
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func GrpcLogger(
+func grpcLogger(
+	logger *zap.Logger,
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
@@ -26,17 +26,24 @@ func GrpcLogger(
 		statusCode = st.Code()
 	}
 
-	logger := log.Info()
-	if err != nil {
-		logger = log.Error().Err(err)
+	logFields := []zap.Field{
+		zap.String("protocol", "grpc"),
+		zap.String("method", info.FullMethod),
+		zap.Int("status_code", int(statusCode)),
+		zap.String("status_text", statusCode.String()),
+		zap.Duration("duration", duration),
 	}
 
-	logger.
-		Str("protocol", "grpc").
-		Str("method", info.FullMethod).
-		Int("status_code", int(statusCode)).
-		Str("status_text", statusCode.String()).
-		Dur("duration", duration).
-		Msg("received a gRPC Request")
+	if err != nil {
+		logFields = append(logFields, zap.Error(err))
+	}
+
+	logger.Info("received a gRPC Request", logFields...)
 	return result, err
+}
+
+func GrpcLoggerWrapper(logger *zap.Logger) func(context.Context, interface{}, *grpc.UnaryServerInfo, grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		return grpcLogger(logger, ctx, req, info, handler)
+	}
 }

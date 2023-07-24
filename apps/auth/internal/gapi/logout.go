@@ -18,7 +18,7 @@ func (server *GAPI) Logout(ctx context.Context, req *auth.LogoutRequest) (*auth.
 		if errors.Is(err, token.ErrInvalidToken) {
 			return nil, status.Errorf(codes.Unauthenticated, "invalid token")
 		}
-		// server.logger.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Errorf(codes.Internal, "Internal Server Error")
 	}
 
@@ -33,7 +33,7 @@ func (server *GAPI) Logout(ctx context.Context, req *auth.LogoutRequest) (*auth.
 		RefreshToken: pgtype.Text{String: "", Valid: true},
 	})
 	if err != nil {
-		// server.logger.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Errorf(codes.Internal, "Internal Server Error")
 	}
 
