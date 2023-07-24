@@ -2,93 +2,64 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
-	"net"
-	"os"
+	"log"
 	"os/signal"
+	"sync"
 	"syscall"
+	"time"
 
-	db "github.com/danilluk1/social-network/apps/auth/internal/db/sqlc"
-	"github.com/danilluk1/social-network/apps/auth/internal/grpc_impl"
-	"github.com/danilluk1/social-network/libs/config"
-	"github.com/danilluk1/social-network/libs/grpc/generated/auth"
-	"github.com/danilluk1/social-network/libs/grpc/servers"
-	"github.com/danilluk1/social-network/libs/kafka/topics"
-	"github.com/jackc/pgx/v5"
-	"github.com/riferrei/srclient"
-	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
+	"github.com/danilluk1/social-network/apps/auth/cmd"
+	"github.com/danilluk1/social-network/apps/auth/internal/observability"
 )
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
+	execCtx, execCancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGHUP, syscall.SIGINT)
+	defer execCancel()
+	go func() {
+		<-execCtx.Done()
+		log.Println("Auth services shutted down with execCtx")
+	}()
 
-	cfg, err := config.New()
-	if err != nil {
-		panic(err)
+	// command is expected to obey the cancellation signal on execCtx and
+	// block while it is running
+	if err := cmd.RootCommand().ExecuteContext(execCtx); err != nil {
+		log.Fatal(err)
 	}
 
-	var logger *zap.Logger
-	if cfg.AppEnv == "development" {
-		l, _ := zap.NewDevelopment()
-		logger = l
-	} else {
-		l, _ := zap.NewProduction()
-		logger = l
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Minute)
+	defer shutdownCancel()
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		// wait for API servers to shut down gracefully
+		// gapi.WaitForCleanup(shutdownCtx)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		// wait for profiler, metrics and trace exporters to shut down gracefully
+		observability.WaitForCleanup(shutdownCtx)
+	}()
+
+	cleanupDone := make(chan struct{})
+	go func() {
+		defer close(cleanupDone)
+		wg.Wait()
+	}()
+
+	select {
+	case <-shutdownCtx.Done():
+		// cleanup timed out
+		return
+
+	case <-cleanupDone:
+		// cleanup finished before timing out
+		return
 	}
-
-	zap.ReplaceGlobals(logger)
-
-	conn, err := pgx.Connect(ctx, cfg.AuthPostgresUrl)
-	if err != nil {
-		logger.Sugar().Error(err)
-	}
-	defer conn.Close(ctx)
-
-	store := db.NewStore(conn)
-
-	writer := &kafka.Writer{
-		Addr:                   kafka.TCP(cfg.KafkaUrl),
-		Topic:                  topics.Mail,
-		AllowAutoTopicCreation: true,
-	}
-	defer writer.Close()
-	schemaClient := srclient.CreateSchemaRegistryClient(cfg.SchemaRegistryUrl)
-	schema, err := schemaClient.GetLatestSchema(topics.Mail)
-	if schema == nil || err == nil {
-		schemaBytes, err := ioutil.ReadFile(cfg.SchemasPath + topics.Mail + ".avsc")
-		if err != nil {
-			panic(err)
-		}
-		_, err = schemaClient.CreateSchema(topics.Mail, string(schemaBytes), srclient.Avro)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	grpcServerImpl, err := grpc_impl.NewServer(cfg, store, logger, writer, schemaClient)
-	if err != nil {
-		logger.Sugar().Error("Failed to create auth grpc server:", err)
-	}
-
-	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", servers.AUTH_SERVER_PORT))
-	if err != nil {
-		logger.Sugar().Error("Failed to listen:", err)
-	}
-
-	grpcServer := grpc.NewServer()
-	auth.RegisterAuthServer(grpcServer, grpcServerImpl)
-	go grpcServer.Serve(lis)
-	defer grpcServer.GracefulStop()
-
-	logger.Sugar().Info("Auth microservice started")
-
-	exitSignal := make(chan os.Signal, 1)
-	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
-
-	<-exitSignal
-	logger.Sugar().Info("Exiting...")
-	cancel()
 }

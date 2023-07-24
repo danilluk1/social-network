@@ -30,7 +30,7 @@ type Services struct {
 }
 
 func NewGAPI(services *Services) *GAPI {
-	return NewGAPIWtihVersion(context.Background(), globalConfig, services, defaultVersion)
+	return NewGAPIWithVersion(context.Background(), services, defaultVersion)
 }
 
 // func (g *GAPI) deprecationNotices(ctx context.Context) {
@@ -46,6 +46,5 @@ func NewGAPIWithVersion(ctx context.Context, services *Services, version string)
 		version:  version,
 	}
 
-	// gapi.deprecationNotices(ctx)
-	// logger := observability.
+	return gapi
 }

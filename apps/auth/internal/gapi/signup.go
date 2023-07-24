@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	db "github.com/danilluk1/social-network/apps/auth/internal/db/sqlc"
+	"github.com/danilluk1/social-network/apps/auth/internal/utilities"
+	"github.com/danilluk1/social-network/apps/auth/internal/val"
 	"github.com/danilluk1/social-network/libs/avro"
 	"github.com/danilluk1/social-network/libs/grpc/generated/auth"
 	types "github.com/danilluk1/social-network/libs/kafka/schemas"
@@ -13,18 +15,39 @@ import (
 	"github.com/danilluk1/social-network/libs/utils"
 	"github.com/jackc/pgconn"
 	"github.com/segmentio/kafka-go"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserRequest) (*auth.CreateUserResponse, error) {
+func validateCreateUserRequest(req *auth.CreateUserRequest) (violations []*errdetails.BadRequest_FieldViolation) {
+	if err := val.ValidateUsername(req.GetUsername()); err != nil {
+		violations = append(violations, fieldViolation("username", err))
+	}
+
+	if err := val.ValidatePassword(req.GetPassword()); err != nil {
+		violations = append(violations, fieldViolation("password", err))
+	}
+
+	if err := val.ValidateFullName(req.GetFullName()); err != nil {
+		violations = append(violations, fieldViolation("full_name", err))
+	}
+
+	if err := val.ValidateEmail(req.GetEmail()); err != nil {
+		violations = append(violations, fieldViolation("email", err))
+	}
+
+	return violations
+}
+
+func (server *GAPI) CreateUser(ctx context.Context, req *auth.CreateUserRequest) (*auth.CreateUserResponse, error) {
 	violations := validateCreateUserRequest(req)
 	if violations != nil {
 		return nil, invalidArgumentError(violations)
 	}
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		server.logger.Sugar().Error(err)
+		// server.services.Sugar().Error(err)
 		return nil, status.Error(codes.Internal, "failed to hash password")
 	}
 	arg := db.CreateUserTxParams{
@@ -35,10 +58,10 @@ func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserReques
 			FullName:       req.GetFullName(),
 		},
 		AfterCreate: func(user db.User) error {
-			verifyEmail, err := server.store.CreateVerifyEmail(ctx, db.CreateVerifyEmailParams{
+			verifyEmail, err := server.services.Store.CreateVerifyEmail(ctx, db.CreateVerifyEmailParams{
 				Username:   user.Username,
 				Email:      user.Email,
-				SecretCode: strconv.Itoa(helpers.GenerateEasyCode()),
+				SecretCode: strconv.Itoa(utilities.GenerateEasyCode()),
 				Token:      utils.RandomString(32),
 			})
 			if err != nil {
@@ -58,7 +81,7 @@ func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserReques
 				Attachments: []string{},
 			}
 
-			schema, err := server.schemaRegistry.GetLatestSchema(topics.Mail)
+			schema, err := server.services.SchemaClient.GetLatestSchema(topics.Mail)
 			if err != nil {
 				return err
 			}
@@ -68,7 +91,7 @@ func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserReques
 				return err
 			}
 
-			err = server.kafkaWriter.WriteMessages(ctx, kafka.Message{
+			err = server.services.KafkaWriter.WriteMessages(ctx, kafka.Message{
 				Value: encodedMsg,
 			})
 			if err != nil {
@@ -79,7 +102,7 @@ func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserReques
 		},
 	}
 
-	tx, err := server.store.CreateUserTx(ctx, arg)
+	tx, err := server.services.Store.CreateUserTx(ctx, arg)
 	if err != nil {
 		if pqErr, ok := err.(*pgconn.PgError); ok {
 			switch pqErr.Code {
@@ -87,12 +110,12 @@ func (server *Server) CreateUser(ctx context.Context, req *auth.CreateUserReques
 				return nil, status.Error(codes.AlreadyExists, "username already exists")
 			}
 		}
-		server.logger.Sugar().Error(err)
+		// server.logger.Sugar().Error(err)
 		return nil, status.Error(codes.Internal, "failed to create user")
 	}
 
 	rsp := &auth.CreateUserResponse{
-		User: convertUser(tx.User),
+		User: utilities.ConvertUser(tx.User),
 	}
 	return rsp, nil
 }

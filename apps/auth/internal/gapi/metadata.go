@@ -1,4 +1,4 @@
-package grpc_impl
+package gapi
 
 import (
 	"context"
@@ -18,7 +18,7 @@ type Metadata struct {
 	ClientIP  string
 }
 
-func (server *Server) extractMetadata(ctx context.Context) *Metadata {
+func (server *GAPI) extractMetadata(ctx context.Context) *Metadata {
 	mtdt := &Metadata{}
 
 	if md, ok := metadata.FromIncomingContext(ctx); ok {

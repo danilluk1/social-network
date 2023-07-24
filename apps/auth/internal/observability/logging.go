@@ -54,4 +54,6 @@ func ConfigureLoggin(config *conf.LoggingConfig) error {
 
 		otel.SetLogger(logrusr.New(logrus.StandardLogger().WithField("component", "otel")))
 	})
+
+	return nil
 }

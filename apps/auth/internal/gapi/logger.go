@@ -1,4 +1,4 @@
-package grpc_impl
+package gapi
 
 import (
 	"context"

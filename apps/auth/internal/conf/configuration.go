@@ -26,7 +26,6 @@ type EmailProviderConfiguration struct {
 }
 
 type DBConfiguration struct {
-	Driver            string        `json:"driver" required:"true"`
 	URL               string        `json:"url" envconfig:"DATABASE_URL" required:"true"`
 	Namespace         string        `json:"namespace" envconfig:"DB_NAMESPACE" default:"public"`
 	MaxPoolSize       int           `json:"max_pool_size" split_words:"true"`
@@ -34,7 +33,7 @@ type DBConfiguration struct {
 	ConnMaxLifetime   time.Duration `json:"conn_max_lifetime,omitempty" split_words:"true"`
 	ConnMaxIdleTime   time.Duration `json:"conn_max_idle_time,omitempty" split_words:"true"`
 	HealthCheckPeriod time.Duration `json:"health_check_period" split_words:"true"`
-	MigrationsPath    string        `json:"migrations_path" split_words:"true" default:"./internal/db/migrations"`
+	MigrationsPath    string        `json:"migrations_path" split_words:"true" default:"/home/danluki/Projects/social-network/apps/auth/internal/db/migration"`
 	CleanupEnabled    bool          `json:"cleanup_enabled" split_words:"true" default:"false"`
 }
 
@@ -49,7 +48,7 @@ type KafkaConfiguration struct {
 }
 
 type PASETOConfiguration struct {
-	Secret string   `json:"secret" required:"true"`
+	Secret string   `json:"secret" envconfig:"PASETO_SECRET" required:"true"`
 	Exp    int      `json:"exp"`
 	Aud    string   `json:"aud"`
 	Roles  []string `json:"roles" split_words:"true"`
@@ -81,15 +80,17 @@ type GlobalConfiguration struct {
 	Tracing               TracingConfig
 	Metrics               MetricsConfig
 	SMTP                  SMTPConfiguration
+	Kafka                 KafkaConfiguration
 	RateLimitHeader       string  `split_words:"true"`
 	RateLimitEmailSent    float64 `split_words:"true" default:"30"`
 	RateLimitSmsSent      float64 `split_words:"true" default:"30"`
 	RateLimitVerify       float64 `split_words:"true" default:"30"`
 	RateLimitTokenRefresh float64 `split_words:"true" default:"30"`
 
-	SiteURL           string              `json:"site_url" split_words:"true" required:"true"`
+	AppEnv            string              `json:"app_env" default:"development" envconfig:"APP_ENV"  required:"true"`
+	SiteURL           string              `json:"site_url" default:"localhost:5173" envconfig:"SITE_URL" required:"true"`
 	PasswordMinLength int                 `json:"password_min_length" split_words:"true"`
-	PASETO            PASETOConfiguration `json:"jwt"`
+	PASETO            PASETOConfiguration `json:"paseto"`
 	Mailer            MailerConfiguration `json:"mailer"`
 	DisableSignup     bool                `json:"disable_signup" split_words:"true"`
 	MFA               MFAConfiguration    `json:"MFA"`
@@ -164,10 +165,12 @@ func LoadGlobal(filename string) (*GlobalConfiguration, error) {
 	if err := config.ApplyDefaults(); err != nil {
 		return nil, err
 	}
+
+	return config, nil
 }
 
 func (c *GlobalConfiguration) ApplyDefaults() error {
-
+	return nil
 }
 
 func (c *GlobalConfiguration) Validate() error {
