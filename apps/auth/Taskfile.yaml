@@ -49,4 +49,4 @@ tasks:
   dev:
     deps: [sqlc, migrateup_dev]
     cmds:
-      - reflex -s -r '\.go' -- go run ./cmd/main.go
+      - reflex -s -r '\.go' -- go run ./main.go

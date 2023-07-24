@@ -4,7 +4,7 @@ ENV CGO_ENABLED=0
 ENV GOOS=linux
 
 RUN apk add --no-cache make git && \
-  npm install -g @go-task/cli
+  go install github.com/go-task/task/v3/cmd/task@latest
 
 WORKDIR /go/src/github.com/danilluk1/social-network/apps/auth
 

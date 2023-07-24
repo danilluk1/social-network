@@ -2,13 +2,17 @@ module github.com/danilluk1/social-network/apps/auth
 
 go 1.20
 
+replace github.com/danilluk1/social-network/libs/avro => ../../libs/avro
+
+replace github.com/danilluk1/social-network/libs/grpc => ../../libs/grpc
+
+replace github.com/danilluk1/social-network/libs/kafka => ../../libs/kafka
+
+replace github.com/danilluk1/social-network/libs/utils => ../../libs/utils
+
 require (
 	github.com/aead/chacha20poly1305 v0.0.0-20201124145622-1a5aba2a8b29
 	github.com/bombsimon/logrusr/v3 v3.1.0
-	github.com/danilluk1/social-network/libs/avro v0.0.0-20230714054725-e2bef9cbf3c6
-	github.com/danilluk1/social-network/libs/grpc v0.0.0-20230701094648-aca802cce650
-	github.com/danilluk1/social-network/libs/kafka v0.0.0-20230714054725-e2bef9cbf3c6
-	github.com/danilluk1/social-network/libs/utils v0.0.0-20230701094648-aca802cce650
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgconn v1.14.1
 	github.com/jackc/pgx v3.6.2+incompatible
