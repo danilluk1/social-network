@@ -12,12 +12,13 @@ COPY ./Taskfile.yaml ./go.* ./
 RUN task deps
 
 COPY . /go/src/github.com/danilluk1/social-network/apps/auth
-RUN task deps
+RUN task build
 
 FROM alpine:3.17
 RUN adduser -D -u 1000 socialy
 
 RUN apk add --no-cache ca-certificates
+
 COPY --from=build /go/src/github.com/danilluk1/social-network/apps/auth /usr/local/bin/auth
 COPY --from=build /go/src/github.com/danilluk1/social-network/apps/auth/internal/db/migration /usr/local/etc/auth/migration
 

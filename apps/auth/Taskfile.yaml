@@ -3,15 +3,13 @@ version: "3"
 tasks:
   build:
     deps: [deps]
-  cmds:
-    - CGO_ENABLED=0 go build {{.FLAGS}}
-    - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build $(FLAGS) -o gotrue-arm64
+    cmds:
+      - CGO_ENABLED=0 go build {{.FLAGS}}
+      - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build {{.FLAGS}} -o gotrue-arm64
 
   deps:
     cmds:
       - go mod download
-      - go mod verify
-
   dev-deps:
     cmds:
       - go install github.com/securego/gosec/v2/cmd/gosec@latest
