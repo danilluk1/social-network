@@ -4,16 +4,25 @@ import (
 	"context"
 	"encoding/binary"
 
-	"github.com/danilluk1/social-network/apps/mailer/internal/types"
 	"github.com/danilluk1/social-network/libs/avro"
+	"github.com/riferrei/srclient"
+	"github.com/segmentio/kafka-go"
+	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
 )
 
 type Reader struct {
-	services *types.Services
+	services *Services
 }
 
-func New(services *types.Services) *Reader {
+type Services struct {
+	Logger         *zap.Logger
+	Mail           *gomail.Dialer
+	Reader         *kafka.Reader
+	SchemaRegistry *srclient.SchemaRegistryClient
+}
+
+func New(services *Services) *Reader {
 	return &Reader{
 		services: services,
 	}
@@ -30,7 +39,7 @@ type EmailMessage struct {
 
 func (r *Reader) Start(ctx context.Context) {
 	for {
-		msg, err := r.services.Reader.ReadMessage(ctx)
+		msg, err := r.services.Reader.FetchMessage(ctx)
 		if err != nil {
 			//TODO: provide rich error handling
 			r.services.Logger.Sugar().Error(err)
