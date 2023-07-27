@@ -1,0 +1,207 @@
+version: '3.9'
+
+services:
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: auth
+    env_file:
+      - ./apps/auth/.env.docker
+    ports:
+      - "50051:50051"
+    depends_on:
+      - postgres
+      - kafka
+      - schemaregistry
+  adminer:
+    container_name: adminer
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - "8085:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres:5432
+      - ADMINER_PLUGINS=enum-types enum-option json-column
+
+  postgres:
+    container_name: postgres
+    restart: unless-stopped
+    image: postgres:15
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: sn_auth
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U test -d sn_auth" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    container_name: zookeeper
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8080:8080
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: test
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+  schemaregistry:
+    container_name: schemaregistry
+    image: confluentinc/cp-schema-registry:7.2.1
+    ports:
+      - 18085:8085
+    depends_on:
+      - kafka
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
+      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: PLAINTEXT
+      SCHEMA_REGISTRY_HOST_NAME: schemaregistry
+      SCHEMA_REGISTRY_LISTENERS: http://schemaregistry:8085
+
+      SCHEMA_REGISTRY_SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL: "http"
+      SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: INFO
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: _schemas
+
+  # kafka-init-topics:
+  #   image: confluentinc/cp-kafka:7.2.1
+  #   volumes:
+  #      - ./data/message.json:/data/message.json
+  #   depends_on:
+  #     - kafka
+  #   command: "bash -c 'echo Waiting for Kafka to be ready... && \
+  #              cub kafka-ready -b kafka:29092 1 30 && \
+  #              kafka-topics --create --topic second.users --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server kafka1:29092 && \
+  #              kafka-topics --create --topic second.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka1:29092 && \
+  #              kafka-topics --create --topic first.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka0:29092 && \
+  #              kafka-console-producer --bootstrap-server kafka1:29092 -topic second.users < /data/message.json'"
+  loki:
+    container_name: loki
+    image: grafana/loki:2.8.0
+    ports:
+      - "3100:3100"
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:2.8.0
+    volumes:
+      - /data/log:/var/log
+  prometheus:
+    image: prom/prometheus:v2.40.1
+    container_name: prometheus
+    volumes:
+      - ./data/prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    expose:
+      - 9090
+    networks:
+      - monitor-net
+      - default-net
+    labels:
+      org.label-schema.group: "monitoring"
+  alertmanager:
+    image: prom/alertmanager:v0.24.0
+    container_name: alertmanager
+    volumes:
+      - ./data/alertmanager:/etc/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+    restart: unless-stopped
+    expose:
+      - 9093
+    networks:
+      - monitor-net
+      - default-net
+    labels:
+      org.label-schema.group: "monitoring"
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:9.2.4
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./data/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./data/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    expose:
+      - 3000
+    networks:
+      - monitor-net
+      - default-net
+    labels:
+      org.label-schema.group: "monitoring"
+
+  pushgateway:
+    container_name: pushgateway
+    image: prom/pushgateway:v1.4.3
+    restart: unless-stopped
+    expose:
+      - 9091
+    networks:
+      - monitor-net
+      - default-net
+    labels:
+      org.label-schema.group: "monitoring"
+
+  mailpit:
+    image: 'axllent/mailpit:latest'
+    container_name: mailpit
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+    networks:
+      - default-net
+
+volumes:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  monitor-net:
+    driver: bridge
+  default-net:
+    driver: bridge

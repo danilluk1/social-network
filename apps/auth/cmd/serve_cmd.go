@@ -70,7 +70,7 @@ func serve(ctx context.Context) {
 		}
 		_, err = schemaClient.CreateSchema(topics.Mail, string(schemaBytes), srclient.Avro)
 		if err != nil {
-			logger.Sugar().Fatalf("failed to create schemas: %+v", err)
+			// logger.Sugar().Fatalf("failed to create schemas: %+v", err)
 		}
 	}
 

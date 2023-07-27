@@ -33,7 +33,7 @@ type DBConfiguration struct {
 	ConnMaxLifetime   time.Duration `json:"conn_max_lifetime,omitempty" split_words:"true"`
 	ConnMaxIdleTime   time.Duration `json:"conn_max_idle_time,omitempty" split_words:"true"`
 	HealthCheckPeriod time.Duration `json:"health_check_period" split_words:"true"`
-	MigrationsPath    string        `json:"migrations_path" split_words:"true" default:"/home/danluki/Projects/social-network/apps/auth/internal/db/migration"`
+	MigrationsPath    string        `json:"migrations_path" required:"true" envconfig:"MIGRATIONS_PATH" default:"/home/danluki/Projects/social-network/apps/auth/internal/db/migration"`
 	CleanupEnabled    bool          `json:"cleanup_enabled" split_words:"true" default:"false"`
 }
 

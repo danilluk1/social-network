@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: socialy-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: socialy-auth
+  template:
+    metadata:
+      labels:
+        app: socialy-auth
+    spec:
+      containers:
+        - name: socialy-auth
+          image: social-network-auth:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 50051
+          envFrom:
+            - configMapRef:
+                name: auth-secret

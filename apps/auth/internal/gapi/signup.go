@@ -13,7 +13,7 @@ import (
 	types "github.com/danilluk1/social-network/libs/kafka/schemas"
 	"github.com/danilluk1/social-network/libs/kafka/topics"
 	"github.com/danilluk1/social-network/libs/utils"
-	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/segmentio/kafka-go"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"

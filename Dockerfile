@@ -22,9 +22,11 @@ FROM alpine:latest as go_prod_base
 
 FROM builder as auth_builder
 RUN cd apps/auth && \
-  task deps && \
+  go mod download && \
   task build
 
 FROM go_prod_base as auth
+COPY --from=auth_builder /app/libs/kafka/schemas /schemas
+COPY --from=auth_builder /app/apps/auth/internal/db/migration /migration
 COPY --from=auth_builder /app/apps/auth/auth /bin/auth
 CMD ["/bin/auth"]
