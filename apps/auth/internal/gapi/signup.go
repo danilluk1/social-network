@@ -110,7 +110,7 @@ func (server *GAPI) CreateUser(ctx context.Context, req *auth.CreateUserRequest)
 				return nil, status.Error(codes.AlreadyExists, "username already exists")
 			}
 		}
-		// server.logger.Sugar().Error(err)
+		server.services.Logger.Sugar().Error(err)
 		return nil, status.Error(codes.Internal, "failed to create user")
 	}
 

@@ -55,7 +55,6 @@ func serve(ctx context.Context) {
 	defer conn.Close(ctx)
 
 	store := db.NewStore(conn)
-
 	writer := &kafka.Writer{
 		Addr:                   kafka.TCP(config.Kafka.KafkaUrl),
 		Topic:                  topics.Mail,
@@ -86,6 +85,7 @@ func serve(ctx context.Context) {
 		TokenMaker:   tokenMaker,
 		KafkaWriter:  writer,
 		SchemaClient: schemaClient,
+		Logger:       logger,
 	}
 
 	grpcApi := gapi.NewGAPIWithVersion(ctx, services, utilities.Version)
