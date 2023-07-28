@@ -10,7 +10,7 @@ services:
     environment:
       - ADMINER_DEFAULT_SERVER=postgres:5432
       - ADMINER_PLUGINS=enum-types enum-option json-column
-  
+
   postgres:
     container_name: postgres
     restart: unless-stopped
@@ -28,7 +28,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  
+
   zookeeper:
     container_name: zookeeper
     image: confluentinc/cp-zookeeper:latest
@@ -37,7 +37,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - 22181:2181
-  
+
   kafka:
     container_name: kafka
     image: confluentinc/cp-kafka:latest
@@ -79,106 +79,56 @@ services:
       SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: INFO
       SCHEMA_REGISTRY_KAFKASTORE_TOPIC: _schemas
 
-  # kafka-init-topics:
-  #   image: confluentinc/cp-kafka:7.2.1
-  #   volumes:
-  #      - ./data/message.json:/data/message.json
-  #   depends_on:
-  #     - kafka
-  #   command: "bash -c 'echo Waiting for Kafka to be ready... && \
-  #              cub kafka-ready -b kafka:29092 1 30 && \
-  #              kafka-topics --create --topic second.users --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server kafka1:29092 && \
-  #              kafka-topics --create --topic second.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka1:29092 && \
-  #              kafka-topics --create --topic first.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka0:29092 && \
-  #              kafka-console-producer --bootstrap-server kafka1:29092 -topic second.users < /data/message.json'"
   loki:
     container_name: loki
     image: grafana/loki:2.8.0
     ports:
       - "3100:3100"
-  promtail:
-    container_name: promtail
-    image: grafana/promtail:2.8.0
-    volumes:
-      - /data/log:/var/log
-  prometheus:
-    image: prom/prometheus:v2.40.1
-    container_name: prometheus
-    volumes:
-      - ./data/prometheus:/etc/prometheus
-      - prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
-    restart: unless-stopped
-    expose:
-      - 9090
-    networks:
-      - monitor-net
-      - default-net
-    labels:
-      org.label-schema.group: "monitoring"
-  alertmanager:
-    image: prom/alertmanager:v0.24.0
-    container_name: alertmanager
-    volumes:
-      - ./data/alertmanager:/etc/alertmanager
-    command: 
-      - '--config.file=/etc/alertmanager/config.yml'
-      - '--storage.path=/alertmanager'
-    restart: unless-stopped
-    expose:
-      - 9093
-    networks:
-      - monitor-net
-      - default-net
-    labels:
-      org.label-schema.group: "monitoring"
-  grafana:
-    container_name: grafana
-    image: grafana/grafana:9.2.4
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./data/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./data/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    expose:
-      - 3000
-    networks:
-      - monitor-net
-      - default-net
-    labels:
-      org.label-schema.group: "monitoring"
 
-  pushgateway:
-    container_name: pushgateway
-    image: prom/pushgateway:v1.4.3
-    restart: unless-stopped
-    expose:
-      - 9091
+  jaeger:
     networks:
       - monitor-net
-      - default-net
-    labels:
-      org.label-schema.group: "monitoring"
-  
+    image: jaegertracing/all-in-one:latest
+    volumes:
+      - "./data/jaeger/ui.json:/etc/jaeger/jaeger-ui.json"
+    command: --query.ui-config /etc/jaeger/jaeger-ui.json
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_SERVER_URL=http://prometheus:9090
+    ports:
+      - "14250:14250"
+      - "14268:14268"
+      - "6831:6831/udp"
+      - "16686:16686"
+      - "16685:16685"
+
+  otel_collector:
+    networks:
+      - monitor-net
+    image: otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - "./data/otel/collector-config.yml:/etc/otelcol/otel-collector-config.yml"
+    command: --config /etc/otelcol/otel-collector-config.yml
+    ports:
+      - "14278:14278"
+    depends_on:
+      - jaeger
+
+  prometheus:
+    networks:
+      - monitor-net
+    image: prom/prometheus:latest
+    volumes:
+      - "./data/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
   mailpit:
     image: 'axllent/mailpit:latest'
     container_name: mailpit
     restart: unless-stopped
     ports:
       - '1025:1025'
-      - '8025:8025' 
+      - '8025:8025'
     networks:
       - default-net
 

@@ -54,19 +54,21 @@ func serve(ctx context.Context) {
 	}
 	defer shutdown(ctx)
 
+	kafkaReader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers: []string{cfg.Kafka.KafkaUrl},
+		Topic:   topics.Mail,
+		GroupID: cfg.Kafka.GroupID,
+	})
+	defer kafkaReader.Close()
+
 	services := &mail.Services{
-		Logger: logger,
-		Mail:   gomail.NewDialer(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.User, cfg.SMTP.Pass),
-		Reader: kafka.NewReader(kafka.ReaderConfig{
-			Brokers: []string{cfg.Kafka.KafkaUrl},
-			Topic:   topics.Mail,
-			GroupID: cfg.Kafka.GroupID,
-		}),
+		Logger:         logger,
+		Mail:           gomail.NewDialer(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.User, cfg.SMTP.Pass),
+		Reader:         kafkaReader,
 		SchemaRegistry: srclient.CreateSchemaRegistryClient(cfg.Kafka.SchemaRegistryUrl),
 	}
-
 	reader := mail.New(services)
-	go reader.Start(ctx)
+	go reader.Start(ctx, cfg)
 
 	logger.Sugar().Info("Mailer microservice started")
 

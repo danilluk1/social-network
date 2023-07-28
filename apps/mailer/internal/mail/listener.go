@@ -3,11 +3,14 @@ package mail
 import (
 	"context"
 	"encoding/binary"
+	"fmt"
 
+	"github.com/danilluk1/social-network/apps/mailer/internal/conf"
 	"github.com/danilluk1/social-network/libs/avro"
 	"github.com/riferrei/srclient"
 	"github.com/segmentio/kafka-go"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
 )
@@ -38,20 +41,23 @@ type EmailMessage struct {
 	Attachments []string `json:"attachments"`
 }
 
-func (r *Reader) Start(ctx context.Context) {
-	for {
-		newCtx, span := otel.Tracer("mail").Start(ctx, "Run")
+func (r *Reader) Start(ctx context.Context, conf *conf.Configuration) {
+	newCtx, span := otel.Tracer("mail").Start(ctx, "Start")
+	defer span.End()
 
-		msg, err := r.services.Reader.ReadMessage(newCtx)
+	for {
+
+		msg, err := r.services.Reader.FetchMessage(newCtx)
 		if err != nil {
-			span.End()
-			r.services.Logger.Sugar().Error(err)
+			span.RecordError(err)
 			continue
 		}
+		r.services.Logger.Sugar().Infof("Message %s received", msg.Value)
+		span.SetStatus(codes.Ok, fmt.Sprintf("Message %s received", msg.Value))
 		err = r.services.Reader.CommitMessages(newCtx, msg)
 		if err != nil {
-			span.End()
 			r.services.Logger.Sugar().Error(err)
+			span.RecordError(err)
 			continue
 		}
 		if len(msg.Value) <= 5 {
@@ -61,7 +67,7 @@ func (r *Reader) Start(ctx context.Context) {
 		schemaID := binary.BigEndian.Uint32(msg.Value[1:5])
 		schema, err := r.services.SchemaRegistry.GetSchema(int(schemaID))
 		if err != nil {
-			span.End()
+			span.RecordError(err)
 			r.services.Logger.Sugar().Error(err)
 			continue
 		}
@@ -71,7 +77,7 @@ func (r *Reader) Start(ctx context.Context) {
 		m := gomail.NewMessage()
 		m.SetHeader("From", email.From)
 		m.SetHeader("To", email.To...)
-		m.SetAddressHeader("Cc", "info@socialnetwork.ru", "Social Network")
+		m.SetAddressHeader("Cc", conf.SMTP.AdminEmail, conf.SMTP.SenderName)
 		m.SetHeader("Subject", "Activating new account")
 		m.SetBody("text/html", email.Body)
 		for _, a := range email.Attachments {
@@ -79,7 +85,7 @@ func (r *Reader) Start(ctx context.Context) {
 		}
 		err = r.services.Mail.DialAndSend(m)
 		if err != nil {
-			span.End()
+			span.RecordError(err)
 			r.services.Logger.Sugar().Error(err)
 		}
 	}

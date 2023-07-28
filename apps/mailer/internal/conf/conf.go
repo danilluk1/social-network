@@ -49,7 +49,7 @@ func (c *Configuration) ApplyDefaults() error {
 	}
 
 	if c.Kafka.KafkaUrl == "" {
-		c.Kafka.KafkaUrl = "localhost:9092"
+		c.Kafka.KafkaUrl = "localhost:29092"
 	}
 
 	if c.Kafka.SchemaRegistryUrl == "" {
