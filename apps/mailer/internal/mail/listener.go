@@ -7,6 +7,7 @@ import (
 	"github.com/danilluk1/social-network/libs/avro"
 	"github.com/riferrei/srclient"
 	"github.com/segmentio/kafka-go"
+	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
 )
@@ -39,14 +40,17 @@ type EmailMessage struct {
 
 func (r *Reader) Start(ctx context.Context) {
 	for {
-		msg, err := r.services.Reader.FetchMessage(ctx)
+		newCtx, span := otel.Tracer("mail").Start(ctx, "Run")
+
+		msg, err := r.services.Reader.ReadMessage(newCtx)
 		if err != nil {
-			//TODO: provide rich error handling
+			span.End()
 			r.services.Logger.Sugar().Error(err)
 			continue
 		}
-		err = r.services.Reader.CommitMessages(ctx, msg)
+		err = r.services.Reader.CommitMessages(newCtx, msg)
 		if err != nil {
+			span.End()
 			r.services.Logger.Sugar().Error(err)
 			continue
 		}
@@ -57,6 +61,7 @@ func (r *Reader) Start(ctx context.Context) {
 		schemaID := binary.BigEndian.Uint32(msg.Value[1:5])
 		schema, err := r.services.SchemaRegistry.GetSchema(int(schemaID))
 		if err != nil {
+			span.End()
 			r.services.Logger.Sugar().Error(err)
 			continue
 		}
@@ -74,6 +79,7 @@ func (r *Reader) Start(ctx context.Context) {
 		}
 		err = r.services.Mail.DialAndSend(m)
 		if err != nil {
+			span.End()
 			r.services.Logger.Sugar().Error(err)
 		}
 	}

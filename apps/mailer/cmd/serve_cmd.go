@@ -9,6 +9,7 @@ import (
 
 	"github.com/danilluk1/social-network/apps/mailer/internal/conf"
 	"github.com/danilluk1/social-network/apps/mailer/internal/mail"
+	"github.com/danilluk1/social-network/apps/mailer/internal/observability"
 	"github.com/danilluk1/social-network/libs/kafka/topics"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/riferrei/srclient"
@@ -46,6 +47,12 @@ func serve(ctx context.Context) {
 	}
 
 	zap.ReplaceGlobals(logger)
+
+	shutdown, err := observability.InitProviderWithJaegerExporter(ctx, cfg)
+	if err != nil {
+		logger.Sugar().Fatalf("Failed to initialize opentelemtry provider: %v", err)
+	}
+	defer shutdown(ctx)
 
 	services := &mail.Services{
 		Logger: logger,

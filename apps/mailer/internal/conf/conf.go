@@ -9,9 +9,10 @@ import (
 )
 
 type Configuration struct {
-	AppEnv string `json:"app_env" split_words:"true" required:"true"`
-	SMTP   SMTPConfiguration
-	Kafka  KafkaConfiguration
+	AppEnv                    string `json:"app_env" split_words:"true" required:"true"`
+	OpenTelemetryCollectorUrl string `json:"open_telemetry_collector_url" split_words:"true" required:"true"`
+	SMTP                      SMTPConfiguration
+	Kafka                     KafkaConfiguration
 }
 
 type SMTPConfiguration struct {
@@ -41,6 +42,10 @@ func (kc *KafkaConfiguration) Validate() error {
 func (c *Configuration) ApplyDefaults() error {
 	if c.AppEnv == "" {
 		c.AppEnv = "development"
+	}
+
+	if c.OpenTelemetryCollectorUrl == "" {
+		c.OpenTelemetryCollectorUrl = "localhost:9005"
 	}
 
 	if c.Kafka.KafkaUrl == "" {
