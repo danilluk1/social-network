@@ -6,9 +6,9 @@ use (
 	./apps/auth
 	./apps/mailer
 	./libs/utils
-	./libs/config
 	./libs/kafka
 	./libs/grpc
 	./libs/avro
+	./libs/go
 	./tools/migrations-runner
 )

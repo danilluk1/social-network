@@ -23,7 +23,6 @@ func migrate(cmd *cobra.Command, args []string) {
 	}
 	defer db.Close()
 
-	// Set the dialect to "postgres"
 	if err := goose.SetDialect("postgres"); err != nil {
 		panic(err)
 	}
