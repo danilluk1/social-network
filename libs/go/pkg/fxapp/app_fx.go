@@ -6,6 +6,7 @@ import (
 	"github.com/danilluk1/social-network/libs/go/pkg/conf"
 	logConfig "github.com/danilluk1/social-network/libs/go/pkg/logger/conf"
 	"github.com/danilluk1/social-network/libs/go/pkg/logger/external/fxlog"
+	"github.com/danilluk1/social-network/libs/go/pkg/logger/logrus"
 	"github.com/danilluk1/social-network/libs/go/pkg/logger/models"
 	"github.com/danilluk1/social-network/libs/go/pkg/logger/zap"
 	"go.uber.org/fx"
@@ -33,7 +34,7 @@ func CreateFxApp(
 	if err != nil || logOption == nil {
 		logModule = zap.ModuleFunc(app.logger)
 	} else if logOption.LogType == models.Logrus {
-		// logModule = logrous.ModuleFunc(app.logger)
+		logModule = logrus.ModuleFunc(app.logger)
 	} else {
 		logModule = zap.ModuleFunc(app.logger)
 	}

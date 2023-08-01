@@ -42,7 +42,7 @@ func BindConfigKey[T any](configKey string, environments ...environment.Environm
 
 	cfg := typeMapper.GenericInstanceByT[T]()
 
-	viper.SetConfigName(fmt.Sprintf("conf.%s", environment))
+	viper.SetConfigName(fmt.Sprintf("config.%s.json", environment))
 	viper.AddConfigPath(configPath)
 	viper.SetConfigType(constants.Json)
 
@@ -82,7 +82,7 @@ func getConfigRootPath() (string, error) {
 		return "", err
 	}
 
-	configPath := filepath.Join(absCurrentDir, ".env")
+	configPath := filepath.Join(absCurrentDir, "conf")
 
 	return configPath, nil
 }

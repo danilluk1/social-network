@@ -6,7 +6,6 @@ require (
 	github.com/aead/chacha20poly1305 v0.0.0-20201124145622-1a5aba2a8b29
 	github.com/bombsimon/logrusr/v3 v3.1.0
 	github.com/google/uuid v1.3.0
-	github.com/jackc/pgconn v1.14.1
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v5 v5.4.1
 	github.com/lib/pq v1.10.9
@@ -24,14 +23,12 @@ require (
 )
 
 require (
+	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
-	github.com/jackc/pgio v1.0.0 // indirect
-	github.com/jackc/pgproto3/v2 v2.3.2 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.opentelemetry.io/otel/metric v1.16.0 // indirect
 	go.opentelemetry.io/otel/trace v1.16.0 // indirect

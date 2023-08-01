@@ -1,6 +1,7 @@
 package fxapp
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,10 +29,12 @@ func NewApplicationBuilder(environments ...environment.Environment) contracts.Ap
 	env := environment.ConfigAppEnv(environments...)
 
 	setConfigPath()
-
 	var logger logger.Logger
 	logoption, err := loggerConfig.ProvideLogConfig(env)
-	if err != nil || logoption == nil {
+	if err != nil {
+		log.Fatal(err)
+	}
+	if logoption == nil {
 		logger = zap.NewZapLogger(logoption, env)
 	} else if logoption.LogType == models.Logrus {
 		//logger = logrous.NewLogrusLogger(logoption, env)
@@ -55,7 +58,6 @@ func setConfigPath() {
 	for !strings.HasSuffix(wd, pn.(string)) {
 		wd = filepath.Dir(wd)
 	}
-
 	// Get the absolute path of the executed project directory
 	absCurrentDir, _ := filepath.Abs(wd)
 
@@ -63,7 +65,6 @@ func setConfigPath() {
 
 	// Get the path to the "config" folder within the project directory
 	configPath := filepath.Join(absCurrentDir, "config")
-
 	viper.Set(constants.ConfigPath, configPath)
 }
 

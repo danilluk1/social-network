@@ -5,13 +5,17 @@ go 1.20
 require (
 	emperror.dev/errors v0.8.1
 	github.com/caarlos0/env/v6 v6.10.1
+	github.com/goccy/go-json v0.10.2
 	github.com/iancoleman/strcase v0.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/mcuadros/go-defaults v1.2.0
+	github.com/nolleh/caption_json_formatter v0.2.2
+	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
-	github.com/vertica/vertica-sql-go v1.3.2
+	go.opentelemetry.io/otel v1.16.0
 	go.uber.org/fx v1.20.0
+	go.uber.org/zap v1.23.0
 )
 
 require (
@@ -31,7 +35,6 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/dig v1.17.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	go.uber.org/zap v1.23.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

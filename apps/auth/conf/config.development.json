@@ -1,0 +1,11 @@
+{
+  "appOptions": {
+    "serviceName": "catalogs_write_service",
+    "deliveryType": "http"
+  },
+  "logOptions": {
+    "level": "debug",
+    "logType": 0,
+    "callerEnabled": false
+  }
+}

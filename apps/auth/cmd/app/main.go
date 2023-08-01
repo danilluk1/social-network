@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/danilluk1/social-network/apps/auth/internal/app"
+	"github.com/danilluk1/social-network/apps/auth/internal/shared/app"
 	"github.com/spf13/cobra"
 )
 
